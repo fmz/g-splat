@@ -1,3 +1,9 @@
 [submodule "3rdparty/fused-ssim"]
 	path = 3rdparty/fused-ssim
 	url = git@github.com:rahul-goel/fused-ssim.git
+[submodule "3rdparty/glomap"]
+	path = 3rdparty/glomap
+	url = git@github.com:colmap/glomap.git
+[submodule "3rdparty/colmap"]
+	path = 3rdparty/colmap
+	url = git@github.com:colmap/colmap.git
