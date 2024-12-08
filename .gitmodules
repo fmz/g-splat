@@ -7,3 +7,6 @@
 [submodule "3rdparty/colmap"]
 	path = 3rdparty/colmap
 	url = git@github.com:colmap/colmap.git
+[submodule "3rdparty/diff-gaussian-rasterization"]
+	path = 3rdparty/diff-gaussian-rasterization
+	url = git@github.com:graphdeco-inria/diff-gaussian-rasterization.git
