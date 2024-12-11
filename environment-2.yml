@@ -1,0 +1,19 @@
+name: gaussian_splatting_2
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+  - defaults
+dependencies:
+  - cuda-toolkit
+  - plyfile
+  - python
+  - pip
+  - pytorch
+  - torchaudio
+  - torchvision
+  - tqdm
+  - pyglm
+  - pip:
+    - opencv-python
+    - joblib
