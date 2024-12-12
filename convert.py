@@ -5,9 +5,7 @@ import os
 
 
 
-glomap_parser = ArgumentParser("Glomap Parser")
-glomap_parser.add_argument("--source_path", "-s", required=True, type=str)
-glomap_parser.add_argument("--database_path", "-d", required=True, type=str)
+
 
 colmap_command = "colmap"
 glomap_command = "glomap"
@@ -16,7 +14,7 @@ def extract_features():
     path = os.makedirs(args.source_path + "/distorted/sparse", exist_ok=True)
 
     print(path)
-
+    print("YO "+ args.source_path)
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " +args.source_path + "/distorted/database.db" + "--image_path " + args.source_path + "/input \
         --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
@@ -49,6 +47,6 @@ if __name__=="__main__":
     glomap_parser = ArgumentParser("Glomap Parser")
     glomap_parser.add_argument("--source_path", "-s", required=True, type=str)
     args =  glomap_parser.parse_args()
-
+    print("f{args}")
 
     main()
