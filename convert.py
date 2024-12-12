@@ -16,6 +16,7 @@ def extract_features(database_path):
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path +  "--image_path " + args.source_path + "/input --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
         --SiftExtraction.use_gpu 1" 
+    print(feat_extracton_cmd)
     exit_code = os.system(feat_extracton_cmd)
     return
 
