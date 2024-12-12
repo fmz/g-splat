@@ -42,10 +42,10 @@ def main():
 
     print('Extracting')
     extract_features(database_path)
-    # print('Matching')
-    #match_features()
+    print('Matching')
+    match_features(database_path)
     # print("Mapping")
-    # map_features()
+    map_features(database_path)
 
 
 if __name__=="__main__":
