@@ -43,7 +43,7 @@ if __name__=="__main__":
     glomap_parser = ArgumentParser("Glomap Parser")
     glomap_parser.add_argument("--source_path", "-s", required=True, type=str)
     glomap_parser.add_argument("--database_path", "-d", required=True, type=str)
-    args = parser.parse_args()
+    args =  glomap_parser.parse_args()
 
 
     main()
