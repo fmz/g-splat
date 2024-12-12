@@ -22,7 +22,7 @@ def extract_features(database_path):
 
 
 def match_features(database_path):
-    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path" +database_path
+    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path
     exit_code = os.system(feat_match_cmd)
     return
 def map_features(database_path):
