@@ -4,9 +4,6 @@ import shuthil
 import os
 
 
-'Todo : add arguemnts such as file path 
-'
-
 
 
 glomap_parser = ArgumentParser("Glomap Parser")
