@@ -3,7 +3,6 @@ import numpy as np
 
 import os
 import glob
-import re
 
 class Dataset():
     # The dataset format is detailed in https://vision.middlebury.edu/mview/data/
@@ -28,7 +27,7 @@ class Dataset():
         self.par_file = par_file[0]
 
         # Read the images
-        with open(self.par_file) as file:
+        with open(self.par_file, encoding='utf8') as file:
             first_line = True
             i = 0
             for line in file:
@@ -50,6 +49,9 @@ class Dataset():
                 self.images.append(Image.open(os.path.join(self.data_dir, img_filename)))
                 self.images[-1] = np.array(self.images[-1], dtype=np.float32)
                 self.images[-1] /= 255.
+
+                if i == 1:
+                    self.img_shape = self.images[-1].shape
 
                 self.cam_K[i]   = np.array(args[1:10]).reshape(3,3)
                 self.cam_R[i]   = np.array(args[10:19]).reshape(3,3)
