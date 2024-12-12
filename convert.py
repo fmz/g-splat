@@ -31,7 +31,7 @@ def map_features():
     feat_map_cmd = glomap_command + " mapper --database_path " + args.source_path + "/distorted/database.db \
         --image_path "  + args.source_path + "/input \
         --output_path "  + args.source_path + "/distorted/sparse \
-        --Mapper.ba_global_function_tolerance=0.000001")
+        --Mapper.ba_global_function_tolerance=0.000001"
 
 
 def main():
