@@ -14,8 +14,7 @@ colmap_command = "colmap"
 glomap_command = "glomap"
 
 def extract_features():
-    feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + args.database_path +
-        "--image_path " + args.source_path + "/input \
+    feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + args.database_path + "--image_path " + args.source_path + "/input \
         --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
         --SiftExtraction.use_gpu 1" 
