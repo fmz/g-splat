@@ -12,7 +12,6 @@ glomap_command = "glomap"
 
 def extract_features(database_path):
    
-    print(path)
     print("YO "+ args.source_path)
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path + + "--image_path " + args.source_path + "/input \
         --ImageReader.single_camera 1 \
