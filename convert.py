@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 import logging
-import shuthil 
 import os
 
 
