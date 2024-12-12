@@ -27,7 +27,7 @@ def extract_features():
 
 def match_features():
     feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path" +args.source_path + "/distorted/database.db"
-    exit_code = os.system(feat_extracton_cmd)
+    exit_code = os.system(feat_match_cmd)
     return
 def map_features():
     feat_map_cmd = glomap_command + " mapper --database_path " + args.source_path + "/distorted/database.db \
@@ -37,10 +37,11 @@ def map_features():
 
 
 def main():
-    os.makedirs(args.source_path + "/distorted/sparse", exist_ok=True)
-
+    print('Extracting')
     extract_features()
+    print('Matching')
     match_features()
+    print("Mapping")
     map_features()
 
 
