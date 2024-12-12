@@ -31,18 +31,17 @@ def match_features():
     exit_code = os.system(feat_extracton_cmd)
     return
 def map_features():
-    feat_map_cmd = glomap_command +" mapper --database_path " + args.database_path +" --image_path " \
-    + args.image_path + " --output_path {os.path.join(distorted_folder, 'sparse')}\
-     --TrackEstablishment.max_num_tracks 5000"
-     exit_code = os.system(feat_map_cmd)
-
-
-
+    feat_map_cmd = glomap_command + " mapper --database_path " + args.source_path + "/distorted/database.db \
+        --image_path "  + args.source_path + "/input \
+        --output_path "  + args.source_path + "/distorted/sparse \
+        --Mapper.ba_global_function_tolerance=0.000001")
 
 
 def main():
-    #Extract features, 
-    #Match images 
+    os.makedirs(args.source_path + "/distorted/sparse", exist_ok=True)
+    extract_features()
+    match_features()
+    map_features()
 
 
 if __name__=="__main__":
