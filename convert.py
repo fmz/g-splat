@@ -10,12 +10,11 @@ import os
 colmap_command = "colmap"
 glomap_command = "glomap"
 
-def extract_features():
-    path = os.makedirs(args.source_path + "/distorted/sparse", exist_ok=True)
-
+def extract_features(database_path):
+   
     print(path)
     print("YO "+ args.source_path)
-    feat_extracton_cmd = colmap_command + " feature_extractor --database_path " +args.source_path + "/distorted/database.db" + "--image_path " + args.source_path + "/input \
+    feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path + + "--image_path " + args.source_path + "/input \
         --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
         --SiftExtraction.use_gpu 1" 
@@ -23,30 +22,36 @@ def extract_features():
     return
 
 
-def match_features():
-    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path" +args.source_path + "/distorted/database.db"
+def match_features(database_path):
+    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path" +database_path
     exit_code = os.system(feat_match_cmd)
     return
-def map_features():
-    feat_map_cmd = glomap_command + " mapper --database_path " + args.source_path + "/distorted/database.db \
+def map_features(database_path):
+    feat_map_cmd = glomap_command + " mapper --database_path " +database_path "\
         --image_path "  + args.source_path + "/input \
         --output_path "  + args.source_path + "/distorted/sparse \
         --Mapper.ba_global_function_tolerance=0.000001"
 
 
 def main():
+    parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
+    distorted_folder = os.path.join(parent_dir, 'distorted')
+    database_path = os.path.join(distorted_folder, 'database.db')
+    sparse_folder = os.path.join(parent_dir, 'sparse')
+    sparse_zero_folder = os.path.join(sparse_folder, '0') 
+    os.makedirs(distorted_folder, exist_ok=True)
+    os.makedirs(sparse_folder, exist_ok=True)
+
     print('Extracting')
-    extract_features()
-    print('Matching')
-    match_features()
-    print("Mapping")
-    map_features()
+    extract_features(database_path)
+    # print('Matching')
+    #match_features()
+    # print("Mapping")
+    # map_features()
 
 
 if __name__=="__main__":
     glomap_parser = ArgumentParser("Glomap Parser")
     glomap_parser.add_argument("--source_path", "-s", required=True, type=str)
     args =  glomap_parser.parse_args()
-    print("f{args}")
-
     main()
