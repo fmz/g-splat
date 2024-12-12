@@ -27,8 +27,7 @@ def match_features(database_path):
     exit_code = os.system(feat_match_cmd)
     return
 def map_features(database_path):
-    feat_map_cmd = glomap_command + " mapper --database_path " +database_path +
-       " --image_path "  + args.source_path + "/input \
+    feat_map_cmd = glomap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
         --output_path "  + args.source_path + "/distorted/sparse \
         --Mapper.ba_global_function_tolerance=0.000001"
 
