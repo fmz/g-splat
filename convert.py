@@ -44,7 +44,7 @@ def main():
     extract_features(database_path)
     print('Matching')
     match_features(database_path)
-    # print("Mapping")
+    print("Mapping")
     map_features(database_path)
 
 
