@@ -27,7 +27,7 @@ def test_renderer():
 
     # Camera pose
     cam_up       = glm.vec3(0.0, 1.0, 0.0)
-    cam_pos      = glm.vec3(0.0, 0.0, 10.0)
+    cam_pos      = glm.vec3(-10.0, 0.0, 10.0)
     cam_focus_on = glm.vec3(0.0, 0.0, 0.0)
 
     cam_near = 0.01
