@@ -23,7 +23,6 @@ def match_features(database_path):
     return
 def map_features(database_path):
     feat_map_cmd = colmap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
-        --output_path "  + args.source_path + "/distorted/sparse --Mapper.ba_global_function_tolerance=0.000001""
         --output_path "  + args.source_path + "/distorted/sparse --Mapper.ba_global_function_tolerance=0.000001"
     exit_code = os.system(feat_map_cmd)
     return
@@ -42,7 +41,6 @@ def binary_to_text(output_folder_bin,output_folder_txt):
 
 def main():
     parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
-
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
     sparse_folder = os.path.join(parent_dir, 'sparse')
