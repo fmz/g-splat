@@ -28,7 +28,7 @@ def undistort(sparse_folder):
     exit_code = os.system(undist_cmd)
     return
 def binary_to_text(output_folder_bin,output_folder_txt):
-    b_to_t_cmd = colmap_command + "model_converter --input_path " +output_folder_bin + " -- output_path "output_folder_txt + " --output_type TXT "
+    b_to_t_cmd = colmap_command + "model_converter --input_path " +output_folder_bin + " -- output_path "+ output_folder_txt + " --output_type TXT "
     exit_code = os.system(b_to_t_cmd)
     return
 
@@ -36,12 +36,11 @@ def binary_to_text(output_folder_bin,output_folder_txt):
 
 def main():
     parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
-   
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
     output_folder_bin = os.path.join(parent_dir, 'output-binary')
     output_folder_txt = os.path.join(parent_dir, 'output-text')
-  
+    print(f"{database_path=}")
 
 
     print('Extracting')
