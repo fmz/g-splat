@@ -29,7 +29,7 @@ def map_features(database_path):
 
 def undistort():
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type TXT"
+    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
@@ -58,8 +58,8 @@ def main():
     map_features(database_path)
     print("Distorting")
     undistort()
-    print("Converting file types")
-    binary_to_text()
+    #print("Converting file types")
+    #binary_to_text()
 
 
 if __name__=="__main__":
