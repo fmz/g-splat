@@ -34,7 +34,7 @@ def undistort():
     return
 
 def binary_to_text():
-    b_to_t_cmd = colmap_command + "model_converter --input_path " +args.source_pathc+"/sparse/0" + " -- output_path "+ +args.source_pathc+"/sparse/0" + " --output_type TXT "
+    b_to_t_cmd = colmap_command + "model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+ +args.source_pathc+"/sparse/0" + " --output_type TXT "
     exit_code = os.system(b_to_t_cmd)
     return
 
