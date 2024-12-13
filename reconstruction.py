@@ -1,6 +1,6 @@
 import pycolmap
 
-reconstruction = pycolmap.Reconstruction("")
+reconstruction = pycolmap.Reconstruction("C:\Users\user\Desktop\CV-Final\g-splat\data\db\drjohnson\sparse\0")
 
 
 def reconstruction()
