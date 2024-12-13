@@ -11,7 +11,9 @@ import numpy as np
 hparams = {
     'learning_rate': 0.01,
     'num_epochs': 10,
-    'regularization_weight': 0.1
+    'regularization_weight': 0.1,
+    'densification_interval':100,
+    'densify_until_iteration':5
 }
 
 def g_splat():
@@ -57,6 +59,12 @@ def g_splat():
             # Backward pass
             total_loss.backward()
             optimizer.step()
+
+            #Refinement Iteration
+            if epoch < hparams["densify_until_iteration"]:
+                if (epoch + 1) % hparams["densification_interval"] == 0:
+                    scene.prune_and_densify
+
 
             # Logging
             if (epoch + 1) % 10 == 0 or epoch == 0:

@@ -27,6 +27,9 @@ class Scene():
         self.rots      = torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True)
         self.colors    = torch.tensor(self.colors, device=self.device, dtype=torch.float32, requires_grad=True)
 
+        self.position_grads = torch.zeros(self.points.shape, device=self.device)
+
+
     # Density is points per unit area
     def get_random_points(self, density=1, seed=None):
         bbox_range = self.bbox.hi - self.bbox.lo
@@ -67,3 +70,12 @@ class Scene():
         print(f"Scales mean: {self.scales.mean(dim=0)}, std: {self.scales.std(dim=0)}")
         print(f"Opacities mean: {self.opacities.mean()}, std: {self.opacities.std()}")
         print(f"Colors mean: {self.colors.mean(dim=0)}, std: {self.colors.std(dim=0)}")
+
+    def prune_and_densify(minimum_opacity = 0.05, max_size = 100, ):
+        self.prune
+
+    def prune_gaussians():
+        pass
+
+    def densify_gaussians():
+        pass
