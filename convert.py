@@ -45,10 +45,13 @@ def main():
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
     sparse_folder = os.path.join(parent_dir, 'sparse')
-    sparse_zero_folder = os.path.join(sparse_folder, '0')  
+    sparse_zero_folder = os.path.join(sparse_folder, '0')
+    sparse_one_folder = os.path.join(sparse_folder, '1')
+      
     os.makedirs(distorted_folder, exist_ok=True)
     os.makedirs(sparse_folder, exist_ok=True)
     os.makedirs(sparse_zero_folder, exist_ok=True)
+    os.makedirs(sparse_one_folder,exist_ok=True)
 
 
 
@@ -58,9 +61,10 @@ def main():
     match_features(database_path)
     print("Mapping")
     map_features(database_path)
-    # print("Distorting")
-    # undistort(sparse_zero_folder)
-    # binary_to_text(output_folder_bin,output_folder_txt)
+    print("Distorting")
+    undistort(sparse_zero_folder)
+    print("Converting file types")
+    binary_to_text(sparse_zero_folder,sparse_one_folder)
 
 
 if __name__=="__main__":
