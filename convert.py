@@ -51,6 +51,7 @@ def main():
     print("Mapping")
     map_features(database_path)
     print("Distorting")
+    undistort(sparse_zero_folder)
 
 
 if __name__=="__main__":
