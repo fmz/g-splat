@@ -21,7 +21,7 @@ def match_features(database_path):
     feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path + " --SiftMatching.use_gpu 0"
     exit_code = os.system(feat_match_cmd)
     return
-def map_features(database_path, spa):
+def map_features(database_path):
     feat_map_cmd = glomap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
         --output_path "  + args.source_path + "/distorted/sparse --TrackEstablishment.max_num_tracks 5000"
     exit_code = os.system(feat_map_cmd)
