@@ -32,14 +32,13 @@ def get_colmap_camera_info(file_path):
 def get_colmap_images_info(file_path):
    
     quaternions = []
-    translation vector = []
+    translation_vector = []
     with open(file_path, 'r') as file:
         lines = file.readlines()
     for line in lines:
         line = line.strip()
         if line.startswith('#') or not line:
             continue
-
         parts = line.split()
         if len(parts) == 8 and parts[7].lower().endswith(('.jpg', '.png', '.jpeg')):
             image_id, qw, qx, qy, qz, tx, ty, tz, image_name = (
@@ -52,13 +51,15 @@ def get_colmap_images_info(file_path):
                 'quaternion': (qw, qx, qy, qz),
                 'translation_vector': (tx, ty, tz)
             })
-    print(f"{quaternion=}")
+    print(f"{quaternions=}")
 
     return quaternions
 
 
 
+
 def main():
+    print("here")
     get_colmap_camera_info(args.camera_path)
     get_colmap_images_info(args.image_path)
 
@@ -67,4 +68,4 @@ if __name__=="__main__":
     parser.add_argument("--image_path", "-i", required=True, type=str)
     parser.add_argument("--camera_path", "-c", required=True, type=str)
     args =  parser.parse_args()
-
+    main()
