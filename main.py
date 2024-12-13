@@ -22,7 +22,8 @@ def g_splat():
 
     data = Dataset("data/cube")
 
-    camera = Camera(data.img_shape, 65)
+    camera = Camera(data.img_shape)
+    camera.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-15.0, -15.0, -15.0]), hi=np.array([15.0, 15.0, 15.0]))
     scene = Scene(bbox)
@@ -44,7 +45,7 @@ def g_splat():
 
             # Rasterize the scene given a camera
             img_out = rasterizer.forward(scene, camera)
-            breakpoint()
+            return
             
             # Compute loss (rendering loss + regularization)
             render_loss = loss_fn(img_out, target_img)

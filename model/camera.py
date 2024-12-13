@@ -6,10 +6,13 @@ class Camera():
     def __init__(self, out_img_size = (0,0), torch_device = torch.device("cuda")):
         self.device = torch_device
         # Output params
-        self.h = out_img_size[0]
-        self.w = out_img_size[1]
+        self.h = int(out_img_size[0])
+        self.w = int(out_img_size[1])
 
-        self.aspect_ratio = self.w / self.h
+        if (self.h == 0):
+            self.aspect_ratio = 0
+        else:
+            self.aspect_ratio = self.w / self.h
             
         self.cam_near = 0.01
         self.cam_far  = 100.0
@@ -72,7 +75,8 @@ class Camera():
 
         # Find the camera origin
         zeros_and_1 = np.array([0, 0, 0, 1])
-        view_4x4 = Rt.concatenate((Rt, zeros_and_1), axis=0)
+        zeros_and_1 = np.expand_dims(zeros_and_1, axis=0)
+        view_4x4 = np.concatenate((Rt, zeros_and_1), axis=0)
         view_inv = np.linalg.inv(view_4x4)
         cam_pos = view_inv @ np.array([0,0,0,1], dtype='float32')
         self.pos = torch.tensor(cam_pos, device=self.device, dtype=torch.float32)

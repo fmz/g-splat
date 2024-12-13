@@ -37,7 +37,7 @@ class Dataset():
         with open(self.par_file, encoding='utf8') as file:
             lines = file.readlines()
             self.num_images = int(lines[0].strip())
-           
+
             self.cam_K   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
             self.cam_R   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
             self.cam_t   = torch.zeros((self.num_images, 3, 1), device=self.device, dtype=torch.float32)
@@ -48,7 +48,8 @@ class Dataset():
                 args = line.split()
                 img_path = os.path.join(self.data_dir, args[0])
                 image = Image.open(img_path)
-                image = torch.tensor(image, dtype=torch.float32)
+                image = np.array(image) / 255.0
+                image = torch.tensor(image, device=self.device, dtype=torch.float32)
                 image = image / 255.0
                 image = image.to(self.device)
 
@@ -62,7 +63,7 @@ class Dataset():
                 self.cam_t[i] = torch.tensor(np.array(args[19:], dtype=np.float32).reshape(3, 1), device=self.device)
                 self.cam_mat[i] = self.cam_K[i] @ torch.cat((self.cam_R[i], self.cam_t[i]), dim=1)
 
-                R_inv = torch.inv(self.cam_R[i])
+                R_inv = torch.inverse(self.cam_R[i])
                 t_inv = -self.cam_t[i]
                 self.cam_pos[i] = (R_inv @ t_inv).squeeze()
         
@@ -74,6 +75,6 @@ class Dataset():
             cam = Camera()
             cam.setup_cam_from_view_and_proj(
                 torch.cat((self.cam_R[i], self.cam_t[i]), dim=1).cpu().detach().numpy(),
-                self.cam_K.cpu().detach().numpy()
+                self.cam_K[i].cpu().detach().numpy()
             )
             self.cameras.append(cam)
