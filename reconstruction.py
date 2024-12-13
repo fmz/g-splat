@@ -6,8 +6,8 @@ def reconstruction():
 
     reconstruction = pycolmap._core.Reconstruction("data/db/drjohnson/sparse" )
     for camera_id, camera in reconstruction.cameras.items():
-        print(f"Camera ID: {camera_id}, Model: {camera.model}, Parameters: {camera.params} Position: {camera.cam_pos} Intrinsics {camera.cam_K}")
-        print(f"Rotation: {camera.cam_R}, Translation vectors = {camera.cam_t} ")
+        print(f"Camera ID: {camera_id}, Model: {camera.model}, Parameters: {camera.params} ")
+        print(f"Camera: {camera}")
 
    
     # for point_id, point in reconstruction.points3D.items():
