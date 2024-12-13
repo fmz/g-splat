@@ -39,17 +39,29 @@ def get_colmap_images_info(file_path):
         line = line.strip()
         if line.startswith('#') or not line:
             continue
-        parts = line.split()
-        if len(parts) == 8 and parts[7].lower().endswith(('.jpg', '.png', '.jpeg')):
-            image_id, qw, qx, qy, qz, tx, ty, tz, image_name = (
-                parts[0], float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]),
-                float(parts[5]), float(parts[6]), float(parts[7]), parts[8]
-            )
+        parts = line.strip()
 
-            quaternions.append({
-                'image_name': image_name,
-                'quaternion': (qw, qx, qy, qz),
-                'translation_vector': (tx, ty, tz)
+        elems = line.split()
+                image_id = int(elems[0])
+                qvec = np.array(tuple(map(float, elems[1:5])))
+                tvec = np.array(tuple(map(float, elems[5:8])))
+                camera_id = int(elems[8])
+                image_name = elems[9]
+                elems = fid.readline().split()
+                xys = np.column_stack(
+                    [
+                        tuple(map(float, elems[0::3])),
+                        tuple(map(float, elems[1::3])),
+                    ]
+                )
+                point3D_ids = np.array(tuple(map(int, elems[2::3])))
+                 
+                quaternions.append({
+                'image_id': image_id,
+                'quaternion': qvec,
+                'translation_vector': tvec,
+                'xys' : xys,
+                'point3D_ids': point3D_ids
             })
     print(f"{quaternions=}")
 
