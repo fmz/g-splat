@@ -1,9 +1,9 @@
 import pycolmap
 
-reconstruction = pycolmap.Reconstruction("data\db\drjohnson\sparse\0")
 
 
 def reconstruction():
+    reconstruction = pycolmap.Reconstruction("data\db\drjohnson\sparse\0")
     for camera_id, camera in reconstruction.cameras.items():
         print(f"Camera ID: {camera_id}, Model: {camera.model}, Parameters: {camera.params}")
 
