@@ -2,11 +2,6 @@ from argparse import ArgumentParser
 import logging
 import os
 
-
-
-
-
-
 colmap_command = "colmap"
 glomap_command = "glomap"
 
@@ -32,6 +27,10 @@ def undistort(sparse_folder):
     --input_path " +sparse_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
+def binary_to_text(output_folder_bin,output_folder_txt):
+    b_to_t_cmd = colmap_command + "model_converter --input_path " +output_folder_bin + " -- output_path "output_folder_txt + " --output_type TXT "
+    exit_code = os.system(b_to_t_cmd)
+    return
 
 
 
@@ -40,7 +39,8 @@ def main():
    
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
-    sparse_folder = os.path.join(parent_dir, 'sparse')
+    output_folder_bin = os.path.join(parent_dir, 'output-binary')
+    output_folder_txt = os.path.join(parent_dir, 'output-text')
   
 
 
@@ -51,7 +51,9 @@ def main():
     print("Mapping")
     map_features(database_path)
     print("Distorting")
-    undistort(sparse_zero_folder)
+    undistort(output_folder_bin)
+    print("Changing filetype")
+    binary_to_text(output_folder_bin,output_folder_txt)
 
 
 if __name__=="__main__":
