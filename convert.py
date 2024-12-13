@@ -63,8 +63,8 @@ def main():
     map_features(database_path)
     print("Distorting")
     undistort(sparse_zero_folder)
-    print("Converting file types")
-    binary_to_text(sparse_zero_folder,sparse_one_folder)
+    # print("Converting file types")
+    # binary_to_text(sparse_zero_folder,sparse_one_folder)
 
 
 if __name__=="__main__":
