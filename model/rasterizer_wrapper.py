@@ -14,6 +14,7 @@ class GausRast():
 
     def forward(self, scene : Scene, camera : Camera):
 
+        viewspace_points = torch.zeros_like(scene.points.shape, device=self.device, requires_grad = True)
         raster_settings = GaussianRasterizationSettings(
             image_height   = int(camera.h),
             image_width    = int(camera.w),
@@ -34,7 +35,7 @@ class GausRast():
 
         # rgb, radii, depth = rasterizer(
         #     means3D=scene.points,
-        #     means2D=None,
+        #     means2D=viewspace_points,
         #     shs=None,
         #     colors_precomp=scene.colors,
         #     opacities=scene.opacities,
@@ -71,7 +72,7 @@ class GausRast():
 
         rgb, radii, depth_image = rasterizer(
             means3D        = g_poss,
-            means2D        = None,
+            means2D        = viewspace_points,
             shs            = None,
             colors_precomp = g_colors,
             opacities      = g_opacities,
@@ -84,4 +85,5 @@ class GausRast():
         plt.imshow(disp_img)
         plt.show()
 
-        return rgb
+        visible_filter = (radii > 0).nonzero
+        return rgb, viewspace_points, visible_filter

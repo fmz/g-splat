@@ -46,8 +46,7 @@ def g_splat():
 
 
             # Rasterize the scene given a camera
-            img_out = rasterizer.forward(scene, camera)
-            return
+            img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
             
             # Compute loss (rendering loss + regularization)
             render_loss = loss_fn(img_out, target_img)
@@ -63,7 +62,7 @@ def g_splat():
             #Refinement Iteration
             if epoch < hparams["densify_until_iteration"]:
                 if (epoch + 1) % hparams["densification_interval"] == 0:
-                    scene.prune_and_densify
+                    scene.prune_and_densify(viewspace_points, visible_filter)
 
 
             # Logging

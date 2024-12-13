@@ -27,7 +27,8 @@ class Scene():
         self.rots      = torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True)
         self.colors    = torch.tensor(self.colors, device=self.device, dtype=torch.float32, requires_grad=True)
 
-        self.position_grads = torch.zeros(self.points.shape, device=self.device)
+        self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
+        self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
 
 
     # Density is points per unit area
@@ -71,11 +72,26 @@ class Scene():
         print(f"Opacities mean: {self.opacities.mean()}, std: {self.opacities.std()}")
         print(f"Colors mean: {self.colors.mean(dim=0)}, std: {self.colors.std(dim=0)}")
 
-    def prune_and_densify(minimum_opacity = 0.05, max_size = 100, ):
-        self.prune
+    def prune_and_densify(self, viewspace_points, visible_filter, minimum_opacity = 0.05, max_size = 100, grad_threshold = 0.0002):
+        self.viewspace_grad_accum[visible_filter] += torch.norm(viewspace_points.grad[visible_filter, 2:])
+        self.grad_denominator[visible_filter] += 1
 
-    def prune_gaussians():
+        viewspace_grads = self.viewspace_grad_accum/self.grad_denominator
+
+        #Densification
+        self.split_gaussians(viewspace_grads, grad_threshold)
+        self.clone_gaussians(viewspace_grads, grad_threshold)
+
+        #Pruning
+        self.prune_gaussians(viewspace_grads)
+        
+
+
+    def split_gaussians(self, grads, threshold):
         pass
 
-    def densify_gaussians():
+    def clone_gaussians(self, grads, threshold):
+        pass
+
+    def prune_gaussians(self, opacity, max_radiis, max_size):
         pass
