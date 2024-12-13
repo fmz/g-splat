@@ -45,6 +45,10 @@ def main():
     database_path = os.path.join(distorted_folder, 'database.db')
     sparse_folder = os.path.join(parent_dir, 'sparse')
     sparse_zero_folder = os.path.join(sparse_folder, '0')  
+    os.makedirs(distorted_folder, exist_ok=True)
+    os.makedirs(sparse_folder, exist_ok=True)
+    os.makedirs(sparse_zero_folder, exist_ok=True)
+
 
 
     print('Extracting')
