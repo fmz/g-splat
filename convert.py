@@ -13,12 +13,12 @@ glomap_command = "glomap"
 def extract_features(database_path):
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path +  " --image_path " + args.source_path + "/input --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
-        --SiftExtraction.use_gpu 0" 
+        --SiftExtraction.use_gpu 1" 
     print(feat_extracton_cmd)
     exit_code = os.system(feat_extracton_cmd)
     return
 def match_features(database_path):
-    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path + " --SiftMatching.use_gpu 0"
+    feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path + " --SiftMatching.use_gpu 1"
     exit_code = os.system(feat_match_cmd)
     return
 def map_features(database_path):
@@ -34,7 +34,7 @@ def undistort():
     return
 
 def binary_to_text():
-    b_to_t_cmd = colmap_command + "model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+ +args.source_pathc+"/sparse/0" + " --output_type TXT "
+    b_to_t_cmd = colmap_command + "model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+ +args.source_path+"/sparse/0" + " --output_type TXT "
     exit_code = os.system(b_to_t_cmd)
     return
 
