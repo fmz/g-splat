@@ -23,18 +23,18 @@ def match_features(database_path):
     return
 def map_features(database_path):
     feat_map_cmd = glomap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
-        --output_path "  + args.source_path + "/distorted/sparse --TrackEstablishment.max_num_tracks 5000"
+        --output_path "  + args.source_path + "/sparse --TrackEstablishment.max_num_tracks 5000"
     exit_code = os.system(feat_map_cmd)
     return
 
-def undistort(sparse_zero_folder):
+def undistort():
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +args.source_path + "/distorted/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
-def binary_to_text(output_folder_bin,output_folder_txt):
-    b_to_t_cmd = colmap_command + "model_converter --input_path " +output_folder_bin + " -- output_path "+ output_folder_txt + " --output_type TXT "
+def binary_to_text():
+    b_to_t_cmd = colmap_command + "model_converter --input_path " +args.source_pathc+"/sparse/0" + " -- output_path "+ +args.source_pathc+"/sparse/0" + " --output_type TXT "
     exit_code = os.system(b_to_t_cmd)
     return
 
@@ -44,14 +44,9 @@ def main():
     parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
-    sparse_folder = os.path.join(parent_dir, 'sparse')
-    sparse_zero_folder = os.path.join(sparse_folder, '0')
-    sparse_one_folder = os.path.join(sparse_folder, '1')
+
       
-    os.makedirs(distorted_folder, exist_ok=True)
-    os.makedirs(sparse_folder, exist_ok=True)
-    os.makedirs(sparse_zero_folder, exist_ok=True)
-    os.makedirs(sparse_one_folder,exist_ok=True)
+    
 
 
 
@@ -62,9 +57,9 @@ def main():
     print("Mapping")
     map_features(database_path)
     print("Distorting")
-    undistort(sparse_zero_folder)
-    # print("Converting file types")
-    # binary_to_text(sparse_zero_folder,sparse_one_folder)
+    undistort()
+    print("Converting file types")
+    binary_to_text()
 
 
 if __name__=="__main__":
