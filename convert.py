@@ -36,7 +36,7 @@ def undistort(sparse_zero_folder):
 
 
 def main():
-    parent_dir = os.path.abspath(os.path.join(args.single_camera, os.pardir))
+    parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
    
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
