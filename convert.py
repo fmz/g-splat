@@ -29,14 +29,14 @@ def map_features(database_path):
 
 def undistort():
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type TXT"
     exit_code = os.system(undist_cmd)
     return
 
-def binary_to_text():
-    b_to_t_cmd = colmap_command + " model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+args.source_path+"/sparse/0" + " --output_type TXT "
-    exit_code = os.system(b_to_t_cmd)
-    return
+# def binary_to_text():
+#     b_to_t_cmd = colmap_command + " model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+args.source_path+"/sparse/1" + " --output_type TXT "
+#     exit_code = os.system(b_to_t_cmd)
+#     return
 
 
 
