@@ -26,10 +26,10 @@ def map_features(database_path):
         --output_path "  + args.source_path + "/distorted/sparse --TrackEstablishment.max_num_tracks 5000"
     exit_code = os.system(feat_map_cmd)
     return
-    
-def undistort(sparse_zero_folder):
+
+def undistort(sparse_folder):
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +sparse_zero_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +sparse_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
@@ -41,7 +41,7 @@ def main():
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
     sparse_folder = os.path.join(parent_dir, 'sparse')
-    sparse_zero_folder = os.path.join(sparse_folder, '0')  
+  
 
 
     print('Extracting')
