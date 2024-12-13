@@ -2,6 +2,11 @@ from argparse import ArgumentParser
 import logging
 import os
 
+
+
+
+
+
 colmap_command = "colmap"
 glomap_command = "glomap"
 
@@ -17,16 +22,17 @@ def match_features(database_path):
     exit_code = os.system(feat_match_cmd)
     return
 def map_features(database_path):
-    feat_map_cmd = glomap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
-        --output_path "  + args.source_path + "/distorted/sparse --TrackEstablishment.max_num_tracks 5000"
+    feat_map_cmd = colmap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
+        --output_path "  + args.source_path + "/distorted/sparse --Mapper.ba_global_function_tolerance=0.000001""
+        --output_path "  + args.source_path + "/distorted/sparse --Mapper.ba_global_function_tolerance=0.000001"
     exit_code = os.system(feat_map_cmd)
     return
-
-def undistort(sparse_folder):
+def undistort(sparse_zero_folder):
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +sparse_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +sparse_zero_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
+
 def binary_to_text(output_folder_bin,output_folder_txt):
     b_to_t_cmd = colmap_command + "model_converter --input_path " +output_folder_bin + " -- output_path "+ output_folder_txt + " --output_type TXT "
     exit_code = os.system(b_to_t_cmd)
@@ -36,23 +42,22 @@ def binary_to_text(output_folder_bin,output_folder_txt):
 
 def main():
     parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
+
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
-    output_folder_bin = os.path.join(parent_dir, 'output-binary')
-    output_folder_txt = os.path.join(parent_dir, 'output-text')
-    print(f"{database_path=}")
+    sparse_folder = os.path.join(parent_dir, 'sparse')
+    sparse_zero_folder = os.path.join(sparse_folder, '0')  
 
 
     print('Extracting')
     extract_features(database_path)
     print('Matching')
     match_features(database_path)
-    print("Mapping")
-    map_features(database_path)
-    print("Distorting")
-    undistort(output_folder_bin)
-    print("Changing filetype")
-    binary_to_text(output_folder_bin,output_folder_txt)
+    # print("Mapping")
+    # map_features(database_path)
+    # print("Distorting")
+    # undistort(sparse_zero_folder)
+    # binary_to_text(output_folder_bin,output_folder_txt)
 
 
 if __name__=="__main__":
@@ -60,3 +65,5 @@ if __name__=="__main__":
     glomap_parser.add_argument("--source_path", "-s", required=True, type=str)
     args =  glomap_parser.parse_args()
     main()
+
+
