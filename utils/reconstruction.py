@@ -23,7 +23,8 @@ def get_colmap_camera_info(file_path):
                 'width': width,
                 'height': height,
                 'params': params
-            })s
+            })
+    print(f"{camera_info=}")
 
     return camera_info
 
@@ -51,6 +52,7 @@ def get_colmap_images_info(file_path):
                 'quaternion': (qw, qx, qy, qz),
                 'translation_vector': (tx, ty, tz)
             })
+    print(f"{quaternion=}")
 
     return quaternions
 
