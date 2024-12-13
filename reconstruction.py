@@ -8,6 +8,9 @@ def reconstruction():
     for camera_id, camera in reconstruction.cameras.items():
         print(f"Camera ID: {camera_id}, Model: {camera.model}, Parameters: {camera.params} ")
         print(f"Camera: {camera}")
+    
+    for camera in reconstruction.cameras():
+        print(f"Camera: {camera}")
 
    
     # for point_id, point in reconstruction.points3D.items():
