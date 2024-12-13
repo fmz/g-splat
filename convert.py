@@ -11,16 +11,12 @@ colmap_command = "colmap"
 glomap_command = "glomap"
 
 def extract_features(database_path):
-   
-    print("YO "+ args.source_path)
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path +  " --image_path " + args.source_path + "/input --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
         --SiftExtraction.use_gpu 0" 
     print(feat_extracton_cmd)
     exit_code = os.system(feat_extracton_cmd)
     return
-
-
 def match_features(database_path):
     feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path + " --SiftMatching.use_gpu 0"
     exit_code = os.system(feat_match_cmd)
@@ -31,10 +27,16 @@ def map_features(database_path):
         --TrackEstablishment.max_num_tracks 5000"
     exit_code = os.system(feat_map_cmd)
     return
+def undistort(sparse_zero_folder):
+    undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
+    --input_path " +sparse_zero_folder "--output_path " + args.source_path + "--output_type COLMAP"
+    exit_code = os.system(undist_cmd)
+    return
+
 
 
 def main():
-    parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
+    parent_dir = os.path.abspath(args.source_path)
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
     sparse_folder = os.path.join(parent_dir, 'sparse')
@@ -48,6 +50,7 @@ def main():
     match_features(database_path)
     print("Mapping")
     map_features(database_path)
+    print("Distorting")
 
 
 if __name__=="__main__":
