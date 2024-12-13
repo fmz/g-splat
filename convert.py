@@ -21,15 +21,15 @@ def match_features(database_path):
     feat_match_cmd  =  colmap_command + " sequential_matcher  --database_path " +database_path + " --SiftMatching.use_gpu 0"
     exit_code = os.system(feat_match_cmd)
     return
-def map_features(database_path, sparse_zero_folder):
+def map_features(database_path, spa):
     feat_map_cmd = glomap_command + " mapper --database_path " +database_path +" --image_path "  + args.source_path + "/input \
-        --output_path "  + sparse_zero_folder + " --TrackEstablishment.max_num_tracks 5000"
+        --output_path "  + args.source_path + "/distorted/sparse --TrackEstablishment.max_num_tracks 5000"
     exit_code = os.system(feat_map_cmd)
     return
 
 def undistort(sparse_zero_folder):
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +sparse_zero_folder+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +args.source_path + "/distorted/sparse"+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
@@ -60,7 +60,7 @@ def main():
     print('Matching')
     match_features(database_path)
     print("Mapping")
-    map_features(database_path,sparse_zero_folder)
+    map_features(database_path)
     print("Distorting")
     undistort(sparse_zero_folder)
     # print("Converting file types")
