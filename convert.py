@@ -29,7 +29,7 @@ def map_features(database_path):
 
 def undistort(sparse_zero_folder):
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +args.source_path + "/distorted/sparse"+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +args.source_path + "/distorted/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
