@@ -34,27 +34,27 @@ def get_colmap_images_info(file_path):
     quaternions = []
     translation_vector = []
     with open(file_path, 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            if line.startswith('#') or not line:
-                continue
-            elems = line.split()
-            print(f"{elems=}")
-            image_id = int(elems[0])
-            qvec = np.array(tuple(map(float, elems[1:5])))
-            tvec = np.array(tuple(map(float, elems[5:8])))
-            camera_id = int(elems[8])
-            image_name = elems[9]
-            elems = file.readline().split()
-            xys = np.column_stack(
-                [
-                    tuple(map(float, elems[0::3])),
-                    tuple(map(float, elems[1::3])),
-                ]
-            )
-            point3D_ids = np.array(tuple(map(int, elems[2::3])))
-                    
-            quaternions.append({
+         while True:
+            line = file.readline()
+            if not line:
+                break
+            line = line.strip()
+            if len(line) > 0 and line[0] != "#":
+                elems = line.split()
+                image_id = int(elems[0])
+                qvec = np.array(tuple(map(float, elems[1:5])))
+                tvec = np.array(tuple(map(float, elems[5:8])))
+                camera_id = int(elems[8])
+                image_name = elems[9]
+                elems = file.readline().split()
+                xys = np.column_stack(
+                    [
+                        tuple(map(float, elems[0::3])),
+                        tuple(map(float, elems[1::3])),
+                    ]
+                )
+                point3D_ids = np.array(tuple(map(int, elems[2::3])))
+                quaternions.append({
                 'image_id': image_id,
                 'quaternion': qvec,
                 'translation_vector': tvec,
