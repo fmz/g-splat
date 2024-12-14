@@ -32,8 +32,8 @@ def get_colmap_camera_info(file_path):
 
 def get_colmap_images_info(file_path):
    
-    quaternions = []
-    translation_vector = []
+    images_info = []
+   
     with open(file_path, 'r') as file:
          while True:
             line = file.readline()
@@ -55,7 +55,7 @@ def get_colmap_images_info(file_path):
                     ]
                 )
                 point3D_ids = np.array(tuple(map(int, elems[2::3])))
-                quaternions.append({
+                image_info.append({
                 'image_id': image_id,
                 'quaternion': qvec,
                 'translation_vector': tvec,
@@ -65,9 +65,9 @@ def get_colmap_images_info(file_path):
 
     #print(f"{quaternions=}")
 
-    return quaternions
+    return images_info
 
-def build_k_matrix(camera_info):
+def build_k_matrix(images_info):
     params = camera_info["params"]
     focal = params[0]
     principle_x = params[1]
@@ -76,18 +76,57 @@ def build_k_matrix(camera_info):
                         [0,focal,principle_y],
                         [0,0,1]])
     return k
+
+
+def build_extrinsic_per_image(images_info):
+    translation_vectors = {}
+    rotation_matricies = {}
+    extrinsic_matricies = {}
+    for image_info in images_info:
+        image_id = image_info['image_id']
+        
+        translation_vector = image_info['translation_vector']
+        qvec = image_info['quaternion']
+        rotation_matrix = np.array(
+        [
+            [
+                1 - 2 * qvec[2] ** 2 - 2 * qvec[3] ** 2,
+                2 * qvec[1] * qvec[2] - 2 * qvec[0] * qvec[3],
+                2 * qvec[3] * qvec[1] + 2 * qvec[0] * qvec[2],
+            ],
+            [
+                2 * qvec[1] * qvec[2] + 2 * qvec[0] * qvec[3],
+                1 - 2 * qvec[1] ** 2 - 2 * qvec[3] ** 2,
+                2 * qvec[2] * qvec[3] - 2 * qvec[0] * qvec[1],
+            ],
+            [
+                2 * qvec[3] * qvec[1] - 2 * qvec[0] * qvec[2],
+                2 * qvec[2] * qvec[3] + 2 * qvec[0] * qvec[1],
+                1 - 2 * qvec[1] ** 2 - 2 * qvec[2] ** 2,
+            ],
+        ])
+        extrinsic_matrix = np.hstack(rotation_matrix,translation_vector)
+
+        translation_vectors[image_id] = translation_vector 
+        rotation_matricies[image_id] = rotation_matrix
+        extrinsic_matricies[image_id] = extrinsic_matrix
+        print(f"{translation_vector=}")
+        print(f"{rotation_matrix=}")
+        print(f"{translation_vector=}")
+
     
-
-
-
-
+    return extrinsic_matricies, rotation_matricies, translation_vectors
+        
 
 def main():
-    print("here")
+    print("Getting Camera Information")
     camera_info = get_colmap_camera_info(args.camera_path)
+    print("Building intrinsic matrix")
     intrinsic = build_k_matrix(camera_info)
-    print(f"{intrinsic=}")
-    get_colmap_images_info(args.image_path)
+    print("Getting Image Information")
+    images_info = get_colmap_images_info(args.image_path)
+    print("Building Extrinsic Matricies")
+    build_extrinsic_per_image(images_info)
 
 if __name__=="__main__":
     parser = ArgumentParser("Parser")
