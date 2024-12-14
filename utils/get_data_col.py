@@ -3,7 +3,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 def get_colmap_camera_info(file_path):
-    global camera_info = {}
+    camera_info = {}
     with open(file_path, 'r') as file:
         lines = file.readlines()
     for line in lines:
