@@ -70,16 +70,16 @@ def build_k_matrix(camera_info):
     focal = params[0]
     principle_x = params[1]
     principle_y = params[2]
-    global k = np.array([[focal,0,principle_x],
+    k = np.array([[focal,0,principle_x],
                         [0,focal,principle_y],
                         [0,0,1]])
     return k
 
 
 def build_extrinsic_per_image(images_info):
-    global translation_vectors = {}
-    global rotation_matricies = {}
-    global extrinsic_matricies = {}
+    translation_vectors = {}
+    rotation_matricies = {}
+    extrinsic_matricies = {}
     for image_info in images_info:
         image_id = image_info['image_id']
         
@@ -122,9 +122,9 @@ def build_extrinsic_per_image(images_info):
 ###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
 
 def read_points3D_text(path):
-    global points3D_output = {}
-    global points3d_coord = []
-    global points3d_rgb = []
+    points3D_output = {}
+    points3d_coord = []
+    points3d_rgb = []
 
     with open(path, "r") as fid:
         while True:
