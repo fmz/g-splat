@@ -3,18 +3,18 @@ from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianR
 from model.camera import Camera
 from model.scene import Scene
 
-import matplotlib.pyplot as plt
 import torch
+import torch.nn as nn
 
 class GausRast():
     def __init__(self, torch_device = torch.device("cuda")):
         self.device = torch_device
-
-        self.bg_clr = torch.tensor([1.0,1.0,1.0], device=self.device, dtype=torch.float32)
+        self.bg_clr = torch.tensor([0.0,0.0,0.0], device=self.device, dtype=torch.float32)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, scene : Scene, camera : Camera):
 
-        viewspace_points = torch.zeros_like(scene.points.shape, device=self.device, requires_grad = True)
+        viewspace_points = torch.zeros_like(scene.points, device=self.device, requires_grad = True)
         raster_settings = GaussianRasterizationSettings(
             image_height   = int(camera.h),
             image_width    = int(camera.w),
@@ -33,11 +33,13 @@ class GausRast():
 
         rasterizer = GaussianRasterizer(raster_settings)
 
+        colors = self.sigmoid(scene.colors)
+
         rgb, radii, depth = rasterizer(
             means3D=scene.points,
             means2D=viewspace_points,
             shs=None,
-            colors_precomp=scene.colors,
+            colors_precomp=colors,
             opacities=scene.opacities,
             scales=scene.scales,
             rotations=scene.rots,
@@ -79,11 +81,6 @@ class GausRast():
         #     scales         = g_scales,
         #     rotations      = g_rots
         # )
-
-        disp_img = rgb.cpu().detach()
-        disp_img = disp_img.permute((1,2,0))
-        plt.imshow(disp_img)
-        plt.show()
 
         visible_filter = (radii > 0).nonzero
         return rgb, viewspace_points, visible_filter

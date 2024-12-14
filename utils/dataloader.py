@@ -48,7 +48,12 @@ class Dataset():
                 args = line.split()
                 img_path = os.path.join(self.data_dir, args[0])
                 image = Image.open(img_path)
-                image = np.array(image) / 255.0
+                # The current dataset has images that have alpha in them
+                image = np.array(image, dtype='float32')
+                image = image[:,:,:3]
+                image /= 255.0
+                # Convert to CHW
+                image = np.permute_dims(image, (2,0,1))
                 image = torch.tensor(image, device=self.device, dtype=torch.float32)
                 image = image / 255.0
                 image = image.to(self.device)

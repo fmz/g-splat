@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 hparams = {
     'learning_rate': 0.01,
@@ -24,7 +26,7 @@ def g_splat():
 
     data = Dataset("data/cube")
 
-    observer = Camera(data.img_shape)
+    observer = Camera(data.img_shape[1:])
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
@@ -44,10 +46,18 @@ def g_splat():
             camera     = data.cameras[i]
             target_img = data.images[i]
 
-
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
             
+            if (i == 0):
+                rgb, _, _ = rasterizer.forward(scene, observer)
+
+                rgb = rgb.cpu().detach()
+                rgb = rgb.permute((1,2,0))
+                plt.imshow(rgb)
+                plt.show()
+
+
             # Compute loss (rendering loss + regularization)
             render_loss = loss_fn(img_out, target_img)
             
@@ -60,14 +70,14 @@ def g_splat():
             optimizer.step()
 
             #Refinement Iteration
-            if epoch < hparams["densify_until_iteration"]:
-                if (epoch + 1) % hparams["densification_interval"] == 0:
-                    scene.prune_and_densify(viewspace_points, visible_filter)
+            # if epoch < hparams["densify_until_iteration"]:
+            #     if (epoch + 1) % hparams["densification_interval"] == 0:
+            #         scene.prune_and_densify(viewspace_points, visible_filter)
 
 
             # Logging
-            if (epoch + 1) % 10 == 0 or epoch == 0:
-                print(f"Epoch {epoch + 1}/{num_epochs}, Render Loss: {render_loss.item():.4f}, Reg Loss: {reg_loss.item():.4f}, Total Loss: {total_loss.item():.4f}")
+            #if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"Epoch {epoch + 1}/{num_epochs}, Render Loss: {render_loss.item():.4f} Total Loss: {total_loss.item():.4f}")
 
             # Optional: Save intermediate rendered images for debugging
             # if (epoch + 1) % 20 == 0:
