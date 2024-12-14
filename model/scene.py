@@ -56,8 +56,14 @@ class Scene():
 
         return points, opacities, scales, rots, colors
 
-    def get_optimizable_params(self):
-        return [self.points, self.opacities, self.scales, self.rots, self.colors]
+    def get_optimizable_params(self, lrs):
+        # Set up a different learning rate for each parameter
+        return [{'params': [self.points], 'lr': lrs['position']},
+                {'params': [self.opacities], 'lr': lrs['opacity']},
+                {'params': [self.scales], 'lr': lrs['scale']},
+                {'params': [self.rots], 'lr': lrs['rotation']},
+                {'params': [self.colors], 'lr': lrs['color']},
+                ]
     
     def regularization_loss(self):
         # TODO
