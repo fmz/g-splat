@@ -47,7 +47,7 @@ def g_splat():
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
-    scene = Scene(bbox,init_method="from-dataset",point_txt)
+    scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
 
     rasterizer = GausRast()
 
