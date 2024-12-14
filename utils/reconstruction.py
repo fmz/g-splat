@@ -39,6 +39,7 @@ def get_colmap_images_info(file_path):
             if line.startswith('#') or not line:
                 continue
             elems = line.split()
+            print(f"{elems=}")
             image_id = int(elems[0])
             qvec = np.array(tuple(map(float, elems[1:5])))
             tvec = np.array(tuple(map(float, elems[5:8])))
