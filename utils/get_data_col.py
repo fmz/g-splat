@@ -62,7 +62,7 @@ def get_colmap_images_info(file_path):
                 'point3D_ids': point3D_ids
                 })
 
-    print(f"{image_infos=}")
+    print(f"{images_info=}")
 
     return images_info
 
