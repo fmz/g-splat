@@ -18,7 +18,6 @@ class Dataset():
 
     def __init__(self, data_dir, torch_device=torch.device('cuda')):
 
-       :
 
 
 
