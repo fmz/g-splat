@@ -36,7 +36,6 @@ def get_colmap_images_info(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
         for line in lines:
-            line = line.strip()
             if line.startswith('#') or not line:
                 continue
             elems = line.split()
