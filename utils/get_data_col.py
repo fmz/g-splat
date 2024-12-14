@@ -162,7 +162,7 @@ def main():
     print("Getting Image Information")
     images_info = get_colmap_images_info(args.image_path)
     print("Building Extrinsic Matricies")
-    extrinsics = build_extrinsic_per_image(images_info)
+    matricies_nd_vectors = build_extrinsic_per_image(images_info)
     print("Gathering Point Clouds")
     points3d = read_points3D_text(args.points_path)
     
