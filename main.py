@@ -2,6 +2,7 @@ from utils.dataloader import Dataset
 from model.scene import Scene, BoundingBox
 from model.camera import Camera
 from model.rasterizer_wrapper import GausRast
+from fused_ssim import fused_ssim
 
 import torch
 import torch.nn as nn
@@ -11,11 +12,12 @@ import matplotlib.pyplot as plt
 
 
 hparams = {
-    'learning_rate': 0.01,
-    'num_epochs': 10,
-    'regularization_weight': 0.1,
+    'learning_rate': 0.1,
+    'num_epochs': 100,
+    'regularization_weight': 0.0001,
     'densification_interval':100,
-    'densify_until_iteration':5
+    'densify_until_iteration':5,
+    'dssim_scale':0.5
 }
 
 def g_splat():
@@ -29,15 +31,18 @@ def g_splat():
     observer = Camera(data.img_shape[1:])
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
 
-    bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
+    bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
     scene = Scene(bbox)
 
     rasterizer = GausRast()
 
+    # Optimizer & loss setup
     params = scene.get_optimizable_params()
     optimizer = optim.Adam(params, hparams["learning_rate"])
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.L1Loss()
+    dssim_scale = hparams['dssim_scale']
 
+    # Train
     num_epochs = hparams["num_epochs"]
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -49,7 +54,7 @@ def g_splat():
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
             
-            if (i == 0):
+            if (i == 0) and ((epoch + 1) % 10 == 0 or epoch == 0):
                 rgb, _, _ = rasterizer.forward(scene, observer)
 
                 rgb = rgb.cpu().detach()
@@ -57,17 +62,21 @@ def g_splat():
                 plt.imshow(rgb)
                 plt.show()
 
+            # Compute loss (rendering loss + dssim)
+            img_out    = img_out.unsqueeze(0)
+            target_img = target_img.unsqueeze(0)
+            ssim_loss  = 1.0 - fused_ssim(img_out, target_img)
 
-            # Compute loss (rendering loss + regularization)
-            render_loss = loss_fn(img_out, target_img)
+            l1_loss = loss_fn(img_out, target_img)
             
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
-            total_loss = render_loss # + reg_loss
+            total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
 
             # Backward pass
             total_loss.backward()
             optimizer.step()
+            optimizer.zero_grad(set_to_none = True)
 
             #Refinement Iteration
             # if epoch < hparams["densify_until_iteration"]:
@@ -76,8 +85,8 @@ def g_splat():
 
 
             # Logging
-            #if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(f"Epoch {epoch + 1}/{num_epochs}, Render Loss: {render_loss.item():.4f} Total Loss: {total_loss.item():.4f}")
+            if (i==0) and ((epoch + 1) % 10 == 0 or epoch == 0):
+                print(f"Epoch {epoch + 1}/{num_epochs}, L1 Loss: {l1_loss.item():.4f}, SSIM Loss: {ssim_loss.item():.4f} Total Loss: {total_loss.item():.4f}")
 
             # Optional: Save intermediate rendered images for debugging
             # if (epoch + 1) % 20 == 0:

@@ -11,6 +11,7 @@ class GausRast():
         self.device = torch_device
         self.bg_clr = torch.tensor([0.0,0.0,0.0], device=self.device, dtype=torch.float32)
         self.sigmoid = nn.Sigmoid()
+        self.relu = nn.ReLU()
 
     def forward(self, scene : Scene, camera : Camera):
 
@@ -33,6 +34,7 @@ class GausRast():
 
         rasterizer = GaussianRasterizer(raster_settings)
 
+        scales = self.relu(scene.scales)
         colors = self.sigmoid(scene.colors)
 
         rgb, radii, depth = rasterizer(
@@ -41,7 +43,7 @@ class GausRast():
             shs=None,
             colors_precomp=colors,
             opacities=scene.opacities,
-            scales=scene.scales,
+            scales=scales,
             rotations=scene.rots,
         )
 

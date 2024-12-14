@@ -1,5 +1,6 @@
 from typing import NamedTuple
 import torch
+import torch.nn as nn
 import numpy as np
 
 class BoundingBox(NamedTuple):
@@ -17,19 +18,17 @@ class Scene():
 
         if init_method == "random":
             self.points, self.opacities, self.scales, self.rots, self.colors = \
-                self.get_random_points(density=1)
+                self.get_random_points(density=0.5)
         elif init_method == 'from-dataset':
             pass
 
-        self.points    = torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True)
-        self.opacities = torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True)
-        self.scales    = torch.tensor(self.scales, device=self.device, dtype=torch.float32, requires_grad=True)
-        self.rots      = torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True)
-        self.colors    = torch.tensor(self.colors, device=self.device, dtype=torch.float32, requires_grad=True)
+        self.points    = nn.Parameter(torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True))
+        self.opacities = nn.Parameter(torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True))
+        self.scales    = nn.Parameter(torch.tensor(self.scales, device=self.device, dtype=torch.float32, requires_grad=True))
+        self.rots      = nn.Parameter(torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True))
+        self.colors    = nn.Parameter(torch.tensor(self.colors, device=self.device, dtype=torch.float32, requires_grad=True))
 
         self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
-        self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
-
 
     # Density is points per unit area
     def get_random_points(self, density=1, seed=None):
@@ -44,8 +43,8 @@ class Scene():
 
         opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.1, 0.1, 0.1])
-        scl_cov  = np.array([0.1, 0.1, 0.1])
+        scl_mean = np.array([0.5, 0.5, 0.5])
+        scl_cov  = np.array([0.2, 0.2, 0.2])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))
 
