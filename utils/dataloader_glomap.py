@@ -6,7 +6,7 @@ import os
 import glob
 
 from model.camera import Camera
-from utils.get_data_col import get_colmap_camera_info,get_colmap_images_info
+from utils.get_data_col import get_colmap_camera_info,get_colmap_images_info,build_k_matrix,build_extrinsic_per_image
 
 class Dataset_Colmap():
     # The dataset format is detailed in https://vision.middlebury.edu/mview/data/
