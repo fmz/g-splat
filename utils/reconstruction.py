@@ -86,6 +86,9 @@ def build_extrinsic_per_image(images_info):
         image_id = image_info['image_id']
         
         translation_vector = image_info['translation_vector']
+        translation_vector = np.array([[translation_vector[0]],
+                                       [translation_vector[1]],
+                                       [translation_vector[2]]])
         qvec = image_info['quaternion']
         rotation_matrix = np.array(
         [
