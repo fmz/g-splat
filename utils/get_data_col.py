@@ -78,9 +78,9 @@ def build_k_matrix(camera_info):
 
 
 def build_extrinsic_per_image(images_info):
-    translation_vectors = []
-    rotation_matricies = []
-    extrinsic_matricies = []
+    translation_vectors = {}
+    rotation_matricies = {}
+    extrinsic_matricies = {}
     for image_info in images_info:
         image_id = image_info['image_id']
         
