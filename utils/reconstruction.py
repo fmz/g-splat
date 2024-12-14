@@ -2,9 +2,6 @@ import pycolmap
 import numpy as np
 from argparse import ArgumentParser
 
-###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
-
-
 def get_colmap_camera_info(file_path):
     camera_info = {}
     with open(file_path, 'r') as file:
@@ -29,6 +26,7 @@ def get_colmap_camera_info(file_path):
 
     return camera_info
 
+###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
 
 def get_colmap_images_info(file_path):
    
@@ -118,6 +116,36 @@ def build_extrinsic_per_image(images_info):
         print(f"{extrinsic_matrix=}")
     
     return extrinsic_matricies, rotation_matricies, translation_vectors
+
+
+###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
+
+    def read_points3D_text(path):
+
+    points3D = {}
+    with open(path, "r") as fid:
+        while True:
+            line = fid.readline()
+            if not line:
+                break
+            line = line.strip()
+            if len(line) > 0 and line[0] != "#":
+                elems = line.split()
+                point3D_id = int(elems[0])
+                xyz = np.array(tuple(map(float, elems[1:4])))
+                rgb = np.array(tuple(map(int, elems[4:7])))
+                error = float(elems[7])
+                image_ids = np.array(tuple(map(int, elems[8::2])))
+                point2D_idxs = np.array(tuple(map(int, elems[9::2])))
+                points3D[point3D_id] = Point3D(
+                    id=point3D_id,
+                    xyz=xyz,
+                    rgb=rgb,
+                    error=error,
+                    image_ids=image_ids,
+                    point2D_idxs=point2D_idxs,
+                )
+    return points3D
         
 
 def main():
@@ -134,5 +162,6 @@ if __name__=="__main__":
     parser = ArgumentParser("Parser")
     parser.add_argument("--image_path", "-i", required=True, type=str)
     parser.add_argument("--camera_path", "-c", required=True, type=str)
+    parser.add_argument("--points_path", "-p", required=True, type=str)
     args =  parser.parse_args()
     main()
