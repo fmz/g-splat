@@ -1,6 +1,5 @@
 import os
 import torch
-import pandas as pd
 from PIL import Image, UnidentifiedImageError
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,6 +37,6 @@ img2 = img2.unsqueeze(0)
 img1 = img1.to(device)
 img2 = img2.to(device)
 
-ssim_value = fused_ssim(img1, img2)
+ssim_value = fused_ssim(img1, img1)
 
 print(ssim_value)
