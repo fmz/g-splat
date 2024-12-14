@@ -35,7 +35,7 @@ def g_splat():
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA unavailable")
 
-    data = Dataset("data/cube")
+    #data = Dataset("data/cube")
 
     image_txt = "data\db\drjohnson\images\images.txt"
     camera_txt = "data\db\drjohnson\images\cameras.txt"
