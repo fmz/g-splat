@@ -105,7 +105,7 @@ def build_extrinsic_per_image(images_info):
                 1 - 2 * qvec[1] ** 2 - 2 * qvec[2] ** 2,
             ],
         ])
-        extrinsic_matrix = np.hstack(rotation_matrix,translation_vector)
+        extrinsic_matrix = np.hstack((rotation_matrix,translation_vector))
 
         translation_vectors[image_id] = translation_vector 
         rotation_matricies[image_id] = rotation_matrix
