@@ -35,7 +35,7 @@ class GausRast():
 
         rgb, radii, depth = rasterizer(
             means3D=scene.points,
-            means2D=None,
+            means2D=viewspace_points,
             shs=None,
             colors_precomp=scene.colors,
             opacities=scene.opacities,
@@ -72,7 +72,7 @@ class GausRast():
 
         # rgb, radii, depth_image = rasterizer(
         #     means3D        = g_poss,
-        #     means2D        = None,
+        #     means2D        = viewspace_points,
         #     shs            = None,
         #     colors_precomp = g_colors,
         #     opacities      = g_opacities,
