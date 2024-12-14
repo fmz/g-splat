@@ -65,16 +65,30 @@ def get_colmap_images_info(file_path):
                 'point3D_ids': point3D_ids
                 })
 
-    print(f"{quaternions=}")
+    #print(f"{quaternions=}")
 
     return quaternions
+
+def build_k_matrix(camera_parameter):
+    params = camera_info["params"]
+    focal = params[0]
+    principle_x = params[1]
+    principle_y = params[2]
+    k = np.array([[focal,0,principle_x],
+                        [0,focal,principle_y],
+                        [0,0,1]])
+    return k
+    
+
 
 
 
 
 def main():
     print("here")
-    get_colmap_camera_info(args.camera_path)
+    camera_info = get_colmap_camera_info(args.camera_path)
+    intrinsic = build_k_matrix(camera_info)
+    print(f{intrinsic=})
     get_colmap_images_info(args.image_path)
 
 if __name__=="__main__":
