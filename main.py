@@ -1,4 +1,5 @@
 from utils.dataloader import Dataset
+from utils.dataloader_glomap import Dataset_Colmap
 from model.scene import Scene, BoundingBox
 from model.camera import Camera
 from model.rasterizer_wrapper import GausRast
@@ -36,11 +37,16 @@ def g_splat():
 
     data = Dataset("data/cube")
 
+    image_txt = "data\db\drjohnson\images\images.txt"
+    camera_txt = "data\db\drjohnson\images\cameras.txt"
+    point_txt = "data\db\drjohnson\images\points3D.txt"
+    data_set_colmap = Dataset_Colmap(img_txt,camera_txt)
+
     observer = Camera(data.img_shape[1:])
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
-    scene = Scene(bbox)
+    scene = Scene(bbox,init_method="from-dataset",point_txt)
 
     rasterizer = GausRast()
 

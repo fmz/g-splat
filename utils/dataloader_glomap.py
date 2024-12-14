@@ -16,7 +16,7 @@ class Dataset_Colmap():
     # "imgname.png k11 k12 k13 k21 k22 k23 k31 k32 k33 r11 r12 r13 r21 r22 r23 r31 r32 r33 t1 t2 t3".
     # The projection matrix for that image is K*[R t]. The image origin is top-left, with x increasing horizontally, y vertically.
 
-    def __init__( img_txt,camera_txt,points_txt):
+    def __init__( img_txt,camera_txt, image_path):
        :
         self.device = torch_device
         self.cam_r = []
@@ -24,8 +24,8 @@ class Dataset_Colmap():
         self.cam_t = []
         images_info = get_colmap_images_info(img_txt)
         camera_info = get_colmap_camera_info(camera_txt)
+        self.img_shape = (camera_info["width"], camera_info["height"])
         k_matrix = build_k_matrix(camera_info)
-        point_info = read_points3D_text(points_txt)
         extrinsic_matricies, rotation_matricies, translation_vectors = build_extrinsic_per_image(image_info)
         self.num_images = len(images_info)
         for i in len(num_images):
@@ -33,6 +33,7 @@ class Dataset_Colmap():
             self.cam_r[i] = torch.tensor(rotation_matricies[i], device = self.device , dtype=torch.float32)
             self.cam_K[i] = torch.tensor(k_matrix, device = self.device , dtype=torch.float32)
             self.cam_t[i] = torch.tensor(translation_vector[i], device = self.device , dtype=torch.float32)
+            self.images[i] = image_path+"/"+images_info[i]
             
         self.cameras = []
         for i in range(self.num_images):
