@@ -2,6 +2,9 @@ import pycolmap
 import numpy as np
 from argparse import ArgumentParser
 
+###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
+
+
 def get_colmap_camera_info(file_path):
     camera_info = []
     with open(file_path, 'r') as file:
