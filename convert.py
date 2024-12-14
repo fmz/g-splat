@@ -45,11 +45,6 @@ def main():
     distorted_folder = os.path.join(parent_dir, 'distorted')
     database_path = os.path.join(distorted_folder, 'database.db')
 
-      
-    
-
-
-
     print('Extracting')
     extract_features(database_path)
     print('Matching')

@@ -3,7 +3,7 @@ import numpy as np
 from argparse import ArgumentParser
 
 def get_colmap_camera_info(file_path):
-    camera_info = {}
+    global camera_info = {}
     with open(file_path, 'r') as file:
         lines = file.readlines()
     for line in lines:
@@ -30,7 +30,7 @@ def get_colmap_camera_info(file_path):
 
 def get_colmap_images_info(file_path):
    
-    images_info = []
+    global images_info = []
    
     with open(file_path, 'r') as file:
          while True:
@@ -70,16 +70,16 @@ def build_k_matrix(camera_info):
     focal = params[0]
     principle_x = params[1]
     principle_y = params[2]
-    k = np.array([[focal,0,principle_x],
+    global k = np.array([[focal,0,principle_x],
                         [0,focal,principle_y],
                         [0,0,1]])
     return k
 
 
 def build_extrinsic_per_image(images_info):
-    translation_vectors = {}
-    rotation_matricies = {}
-    extrinsic_matricies = {}
+    global translation_vectors = {}
+    global rotation_matricies = {}
+    global extrinsic_matricies = {}
     for image_info in images_info:
         image_id = image_info['image_id']
         
@@ -122,7 +122,7 @@ def build_extrinsic_per_image(images_info):
 ###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
 
 def read_points3D_text(path):
-    points3D = {}
+    global points3D = {}
     with open(path, "r") as fid:
         while True:
             line = fid.readline()
