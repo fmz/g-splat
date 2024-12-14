@@ -150,7 +150,7 @@ def read_points3D_text(path):
                         'image_ids' :image_ids,
                         'point2D_idxs' : point2D_idxs,
                 }
-    return points3D_output
+    return points3D_output, points3d_coord, points3d_rgb
 
         
 

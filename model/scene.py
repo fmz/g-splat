@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class BoundingBox(NamedTuple):
     lo: np.array
     hi: np.array
@@ -12,7 +13,7 @@ class Scene():
     def __init__(self,
                  bbox : BoundingBox,
                  torch_device = torch.device('cuda'),
-                 init_method="random"):
+                 init_method="random", points_txt = 'none'):
         self.device = torch_device
         self.bbox   = bbox
 
@@ -20,6 +21,11 @@ class Scene():
             self.points, self.opacities, self.scales, self.rots, self.colors = \
                 self.get_random_points(density=0.5)
         elif init_method == 'from-dataset':
+            output,self.points, self.colors = read_points3D_text(points_txt)
+            self.opacities = torch.full(len(output), 1)
+            self.points = points3d_coord
+            x, z, self.scales, self.rots, y = \
+                self.get_random_points(density=0.5)
             pass
 
         self.points    = nn.Parameter(torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True))
