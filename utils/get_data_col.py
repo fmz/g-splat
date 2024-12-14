@@ -122,7 +122,10 @@ def build_extrinsic_per_image(images_info):
 ###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113
 
 def read_points3D_text(path):
-    global points3D = {}
+    global points3D_output = {}
+    global points3d_coord = []
+    global points3d_rgb = []
+
     with open(path, "r") as fid:
         while True:
             line = fid.readline()
@@ -133,7 +136,9 @@ def read_points3D_text(path):
                 elems = line.split()
                 point3D_id = int(elems[0])
                 xyz = np.array(tuple(map(float, elems[1:4])))
+                points3d_coord.append(xyz)
                 rgb = np.array(tuple(map(int, elems[4:7])))
+                points3d_rgb.append(rgb)
                 error = float(elems[7])
                 image_ids = np.array(tuple(map(int, elems[8::2])))
                 point2D_idxs = np.array(tuple(map(int, elems[9::2])))
@@ -145,8 +150,9 @@ def read_points3D_text(path):
                         'image_ids' :image_ids,
                         'point2D_idxs' : point2D_idxs,
                 }
-    print(points3D)
     return points3D
+
+def break
         
 
 def main():
