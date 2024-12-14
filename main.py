@@ -37,10 +37,10 @@ def g_splat():
 
     #data = Dataset("data/cube")
 
-    image_txt = "data\db\drjohnson\images\images.txt"
-    camera_txt = "data\db\drjohnson\images\cameras.txt"
-    point_txt = "data\db\drjohnson\images\points3D.txt"
-    image_path = "data\db\drjohnson\images\input"
+    image_txt = "data/db/drjohnson/images/images.txt"
+    camera_txt = "data/db/drjohnson/images/cameras.txt"
+    point_txt = "data/db/drjohnson/images/points3D.txt"
+    image_path = "data/db/drjohnson/images/input"
     data_set_colmap = Dataset_Colmap(image_txt,camera_txt,image_path)
 
     observer = Camera(data_set_colmap.img_shape[1:])
