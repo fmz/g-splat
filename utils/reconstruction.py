@@ -146,6 +146,7 @@ def build_extrinsic_per_image(images_info):
                         image_ids=image_ids,
                         point2D_idxs=point2D_idxs,
                     )
+        print(points3D)
         return points3D
         
 
@@ -158,6 +159,8 @@ def main():
     images_info = get_colmap_images_info(args.image_path)
     print("Building Extrinsic Matricies")
     build_extrinsic_per_image(images_info)
+    print("Gathering Point Clouds")
+    read_points3D_text(args.points_path)
 
 if __name__=="__main__":
     parser = ArgumentParser("Parser")
