@@ -16,7 +16,7 @@ class Dataset_Colmap():
     # "imgname.png k11 k12 k13 k21 k22 k23 k31 k32 k33 r11 r12 r13 r21 r22 r23 r31 r32 r33 t1 t2 t3".
     # The projection matrix for that image is K*[R t]. The image origin is top-left, with x increasing horizontally, y vertically.
 
-    def __init__( img_txt,camera_txt, image_path):
+    def __init__(self, img_txt,camera_txt,image_path):
         self.device = torch_device
         self.cam_r = []
         self.cam_k = []
