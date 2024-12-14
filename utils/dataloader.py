@@ -17,6 +17,11 @@ class Dataset():
     # The projection matrix for that image is K*[R t]. The image origin is top-left, with x increasing horizontally, y vertically.
 
     def __init__(self, data_dir, torch_device=torch.device('cuda')):
+
+       :
+
+
+
         self.device = torch_device
 
         if os.path.isdir(data_dir):
