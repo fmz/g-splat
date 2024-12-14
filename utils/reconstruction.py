@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 
 def get_colmap_camera_info(file_path):
-    camera_info = []
+    camera_info = {}
     with open(file_path, 'r') as file:
         lines = file.readlines()
     for line in lines:
@@ -20,13 +20,11 @@ def get_colmap_camera_info(file_path):
             width = int(parts[2])
             height = int(parts[3])
             params = list(map(float, parts[4:]))
-            camera_info.append({
-                'camera_id': camera_id,
-                'model': model,
-                'width': width,
-                'height': height,
-                'params': params
-            })
+            camera_info['camera_id']: camera_id,
+            camera_info['models']: model,
+            camera_info['width']: width,
+            camera_info['height']: height,
+            camera_info['params']: params
     print(f"{camera_info=}")
 
     return camera_info
