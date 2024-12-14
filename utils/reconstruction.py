@@ -35,34 +35,32 @@ def get_colmap_images_info(file_path):
     translation_vector = []
     with open(file_path, 'r') as file:
         lines = file.readlines()
-    for line in lines:
-        line = line.strip()
-        if line.startswith('#') or not line:
-            continue
-        parts = line.strip()
-
-        elems = line.split()
-        image_id = int(elems[0])
-        qvec = np.array(tuple(map(float, elems[1:5])))
-        tvec = np.array(tuple(map(float, elems[5:8])))
-        camera_id = int(elems[8])
-        image_name = elems[9]
-        elems = file.readline().split()
-        xys = np.column_stack(
-            [
-                tuple(map(float, elems[0::3])),
-                tuple(map(float, elems[1::3])),
-            ]
-        )
-        point3D_ids = np.array(tuple(map(int, elems[2::3])))
-                 
-        quaternions.append({
-            'image_id': image_id,
-            'quaternion': qvec,
-            'translation_vector': tvec,
-            'xys' : xys,
-            'point3D_ids': point3D_ids
-            })
+        for line in lines:
+            line = line.strip()
+            if line.startswith('#') or not line:
+                continue
+            elems = line.split()
+            image_id = int(elems[0])
+            qvec = np.array(tuple(map(float, elems[1:5])))
+            tvec = np.array(tuple(map(float, elems[5:8])))
+            camera_id = int(elems[8])
+            image_name = elems[9]
+            elems = file.readlines().split()
+            xys = np.column_stack(
+                [
+                    tuple(map(float, elems[0::3])),
+                    tuple(map(float, elems[1::3])),
+                ]
+            )
+            point3D_ids = np.array(tuple(map(int, elems[2::3])))
+                    
+            quaternions.append({
+                'image_id': image_id,
+                'quaternion': qvec,
+                'translation_vector': tvec,
+                'xys' : xys,
+                'point3D_ids': point3D_ids
+                })
 
     print(f"{quaternions=}")
 
