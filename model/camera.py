@@ -95,7 +95,8 @@ class Camera():
         self.tanfovx = self.w / (2 * f_w)
         self.tanfovy = self.h / (2 * f_h)
 
-        self.cam_height_angle = np.atan(self.tanfovy) * 2
+        #self.cam_height_angle = np.atan(self.tanfovy) * 2
+        self.cam_height_angle = np.arctan(self.tanfovy) * 2
   
         proj_glm = glm.perspective(self.cam_height_angle, self.aspect_ratio, self.cam_near, self.cam_far)
 
