@@ -55,13 +55,16 @@ def g_splat():
 
     ########## TEST
     from PIL import Image
+    '''
     from torchvision.transforms import v2
 
+    
     img_transform = v2.Compose([
         v2.ToImage(),
         v2.Resize(size=(1080, 1920)),
         v2.ToDtype(torch.float32, scale=True),
     ])
+    '''
 
     img_file1 = "data/yosemite1.jpg"
 
@@ -72,9 +75,20 @@ def g_splat():
     print(f"Running model on device: {device}")
 
     img1 = Image.open(img_file1).convert("RGB")
-    img1 = img_transform(img1)
-    img1 = img1.unsqueeze(0)
-    img1 = img1.to(device)
+    newsize = (1920, 1080)
+    img1 = img1.resize(newsize)
+
+    #img1 = img_transform(img1)
+
+    #Old version img1 loading
+    img1 = np.array(img1, dtype='float32')
+    #img1 = img1[:,:,:3]
+    #img1 /= 255.0
+    # Convert to CHW
+    #img1 = np.permute_dims(img1, (2,0,1))
+    img1 = np.transpose(img1, (2,0,1))
+    img1 = torch.tensor(img1, device=device, dtype=torch.float32)
+    img1 = img1 / 255.0
     #############
 
 
