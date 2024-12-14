@@ -59,7 +59,9 @@ class Dataset():
                     self.img_shape = self.images[-1].shape
 
                 self.cam_K[i] = torch.tensor(np.array(args[1:10], dtype=np.float32).reshape(3, 3), device=self.device)
-                self.cam_R[i] = torch.tensor(np.array(args[10:19], dtype=np.float32).reshape(3, 3), device=self.device)
+                R = np.array(args[10:19], dtype=np.float32).reshape(3, 3)
+                R = R[:, [1,2,0]]
+                self.cam_R[i] = torch.tensor(R, device=self.device)
                 self.cam_t[i] = torch.tensor(np.array(args[19:], dtype=np.float32).reshape(3, 1), device=self.device)
                 self.cam_mat[i] = self.cam_K[i] @ torch.cat((self.cam_R[i], self.cam_t[i]), dim=1)
 

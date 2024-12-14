@@ -33,52 +33,52 @@ class GausRast():
 
         rasterizer = GaussianRasterizer(raster_settings)
 
-        # rgb, radii, depth = rasterizer(
-        #     means3D=scene.points,
-        #     means2D=viewspace_points,
-        #     shs=None,
-        #     colors_precomp=scene.colors,
-        #     opacities=scene.opacities,
-        #     scales=scene.scales,
-        #     rotations=scene.rots,
-        # )
-
-        # A couple test gaussians:
-        g_poss      = torch.tensor([[0.0, 0.0, 4.0],
-                                    [0.0, 2.0, 2.0],
-                                    [0.0, -4.0, 0.0],
-                                    [6.0, 0.0, -2.0],
-                                    [-8.0, 0.0, -4.0]], device=self.device)
-        g_opacities = torch.tensor([[1.0],
-                                    [1.0],
-                                    [1.0],
-                                    [1.0],
-                                    [1.0]], device=self.device)
-        g_scales    = torch.tensor([[1.0, 1.0, 1.0],
-                                    [1.0, 1.0, 1.0],
-                                    [1.0, 1.0, 1.0],
-                                    [1.0, 1.0, 1.0],
-                                    [1.0, 1.0, 1.0]], device=self.device)
-        g_rots      = torch.tensor([[1.0, 0.0, 0.0, 0.0],
-                                    [1.0, 0.0, 0.0, 0.0],
-                                    [1.0, 0.0, 0.0, 0.0],
-                                    [1.0, 0.0, 0.0, 0.0],
-                                    [1.0, 0.0, 0.0, 0.0]], device=self.device)
-        g_colors    = torch.tensor([[1.0, 0.0, 0.0],
-                                    [0.0, 1.0, 0.0],
-                                    [0.0, 0.0, 1.0],
-                                    [1.0, 1.0, 0.0],
-                                    [1.0, 0.0, 1.0]], device=self.device)
-
-        rgb, radii, depth_image = rasterizer(
-            means3D        = g_poss,
-            means2D        = viewspace_points,
-            shs            = None,
-            colors_precomp = g_colors,
-            opacities      = g_opacities,
-            scales         = g_scales,
-            rotations      = g_rots
+        rgb, radii, depth = rasterizer(
+            means3D=scene.points,
+            means2D=None,
+            shs=None,
+            colors_precomp=scene.colors,
+            opacities=scene.opacities,
+            scales=scene.scales,
+            rotations=scene.rots,
         )
+
+        # # A couple test gaussians:
+        # g_poss      = torch.tensor([[0.0, 0.0, 4.0],
+        #                             [0.0, 2.0, 2.0],
+        #                             [0.0, -4.0, 0.0],
+        #                             [6.0, 0.0, -2.0],
+        #                             [-8.0, 0.0, -4.0]], device=self.device)
+        # g_opacities = torch.tensor([[1.0],
+        #                             [1.0],
+        #                             [1.0],
+        #                             [1.0],
+        #                             [1.0]], device=self.device)
+        # g_scales    = torch.tensor([[1.0, 1.0, 1.0],
+        #                             [1.0, 1.0, 1.0],
+        #                             [1.0, 1.0, 1.0],
+        #                             [1.0, 1.0, 1.0],
+        #                             [1.0, 1.0, 1.0]], device=self.device)
+        # g_rots      = torch.tensor([[1.0, 0.0, 0.0, 0.0],
+        #                             [1.0, 0.0, 0.0, 0.0],
+        #                             [1.0, 0.0, 0.0, 0.0],
+        #                             [1.0, 0.0, 0.0, 0.0],
+        #                             [1.0, 0.0, 0.0, 0.0]], device=self.device)
+        # g_colors    = torch.tensor([[1.0, 0.0, 0.0],
+        #                             [0.0, 1.0, 0.0],
+        #                             [0.0, 0.0, 1.0],
+        #                             [1.0, 1.0, 0.0],
+        #                             [1.0, 0.0, 1.0]], device=self.device)
+
+        # rgb, radii, depth_image = rasterizer(
+        #     means3D        = g_poss,
+        #     means2D        = None,
+        #     shs            = None,
+        #     colors_precomp = g_colors,
+        #     opacities      = g_opacities,
+        #     scales         = g_scales,
+        #     rotations      = g_rots
+        # )
 
         disp_img = rgb.cpu().detach()
         disp_img = disp_img.permute((1,2,0))

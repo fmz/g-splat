@@ -47,14 +47,14 @@ class Camera():
         self.view, self.proj = self.compute_camera_matrix(self.up, pos, self.focus)
 
         # Pos actually needs to be on the GPU
-        self.pos = torch.tensor(self.pos.to_tuple(), device=self.device, dtype=torch.float32)
+        self.pos = torch.tensor(pos.to_tuple(), device=self.device, dtype=torch.float32)
 
     def compute_camera_matrix(self, up : glm.vec3, pos : glm.vec3, focus : glm.vec3):
         # Construct the camera pose
-        view = glm.lookAt(pos, focus, up)
-        # hack: We look down the +Z direction
-        view[3, 2] *= -1
-        
+        # Hack: we need to look down the +Z dimension (hence the '-'es)
+        view = glm.lookAt(-pos, focus, up)
+        view[3] *= -1
+        view[3,3] = 1
         torch_view = torch.tensor(view.to_tuple(), device=self.device, dtype=torch.float32)
 
         proj_glm = glm.perspective(self.cam_height_angle, self.aspect_ratio, self.cam_near, self.cam_far)
@@ -71,27 +71,36 @@ class Camera():
         self.pos = torch.tensor(self.pos.to_tuple(), device=self.device, dtype=torch.float32)
 
     def setup_cam_from_view_and_proj(self, Rt : np.array, K : np.array):
-        # THIS HAS NOT BEEN TESTED
-
         # Find the camera origin
         zeros_and_1 = np.array([0, 0, 0, 1])
         zeros_and_1 = np.expand_dims(zeros_and_1, axis=0)
         view_4x4 = np.concatenate((Rt, zeros_and_1), axis=0)
         view_inv = np.linalg.inv(view_4x4)
         cam_pos = view_inv @ np.array([0,0,0,1], dtype='float32')
-        self.pos = torch.tensor(cam_pos, device=self.device, dtype=torch.float32)
-        
-        self.view = torch.tensor(Rt, device=self.device, dtype=torch.float32)
+        self.pos = torch.tensor(cam_pos[:3], device=self.device, dtype=torch.float32)
+        view_4x4[2,:] *= -1 # HACK
+        # View matrix (needs to be column major)
+        self.view = torch.tensor(view_4x4, device=self.device, dtype=torch.float32).T
 
-        self.tanfovy = K[1,1]
-        self.tanfovx = K[0,0]
-
+        # Projection params
         self.w = int(K[0,2]*2)
         self.h = int(K[1,2]*2)
 
         self.aspect_ratio = self.w/self.h
 
-        self.proj = torch.tensor(K @ Rt, device=self.device, dtype=torch.float32)
+        # Recover fov (from Szeliski: tan(theta/2) = W/2f))
+        f_w = K[0,0]
+        f_h = K[1,1]
+        self.tanfovx = self.w / (2 * f_w)
+        self.tanfovy = self.h / (2 * f_h)
+
+        self.cam_height_angle = np.atan(self.tanfovy) * 2
+  
+        proj_glm = glm.perspective(self.cam_height_angle, self.aspect_ratio, self.cam_near, self.cam_far)
+
+        torch_proj = torch.tensor(proj_glm.to_tuple(), device=self.device, dtype=torch.float32)
+
+        self.proj = torch_proj @ self.view
 
 
     def log_camera_info(self):
