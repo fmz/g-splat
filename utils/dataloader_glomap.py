@@ -33,8 +33,8 @@ class Dataset_Colmap():
             self.cam_r[i] = torch.tensor(rotation_matricies[i], device = self.device , dtype=torch.float32)
             self.cam_K[i] = torch.tensor(k_matrix, device = self.device , dtype=torch.float32)
             self.cam_t[i] = torch.tensor(translation_vector[i], device = self.device , dtype=torch.float32)
-            self.images[i] = image_path+"/"+images_info[i]
-            
+            self.images[i] = image_path+"/"+images_info[i]['image_name']
+
         self.cameras = []
         for i in range(self.num_images):
             cam = Camera()

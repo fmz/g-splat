@@ -82,7 +82,6 @@ def build_extrinsic_per_image(images_info):
     rotation_matricies = {}
     extrinsic_matricies = {}
     for image_info in images_info:
-        print(image_info)
         image_info = images_info[image_info]
         image_id = image_info['image_id']
         
