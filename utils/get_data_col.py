@@ -30,7 +30,7 @@ def get_colmap_camera_info(file_path):
 
 def get_colmap_images_info(file_path):
    
-    images_info = []
+    images_info = {}
    
     with open(file_path, 'r') as file:
          while True:
@@ -53,7 +53,7 @@ def get_colmap_images_info(file_path):
                     ]
                 )
                 point3D_ids = np.array(tuple(map(int, elems[2::3])))
-                images_info.append({
+                images_info[image_id] = ({
                 'image_id': image_id,
                 'image_name': image_name,
                 'quaternion': qvec,
