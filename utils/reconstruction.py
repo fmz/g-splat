@@ -47,7 +47,7 @@ def get_colmap_images_info(file_path):
         tvec = np.array(tuple(map(float, elems[5:8])))
         camera_id = int(elems[8])
         image_name = elems[9]
-        elems = fid.readline().split()
+        elems = file.readline().split()
         xys = np.column_stack(
             [
                 tuple(map(float, elems[0::3])),
@@ -63,7 +63,7 @@ def get_colmap_images_info(file_path):
             'xys' : xys,
             'point3D_ids': point3D_ids
             })
-            
+
     print(f"{quaternions=}")
 
     return quaternions
