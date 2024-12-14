@@ -40,9 +40,10 @@ def g_splat():
     image_txt = "data\db\drjohnson\images\images.txt"
     camera_txt = "data\db\drjohnson\images\cameras.txt"
     point_txt = "data\db\drjohnson\images\points3D.txt"
-    data_set_colmap = Dataset_Colmap(img_txt,camera_txt)
+    image_path = "data\db\drjohnson\images\input"
+    data_set_colmap = Dataset_Colmap(img_txt,camera_txt,image_path)
 
-    observer = Camera(data.img_shape[1:])
+    observer = Camera(data_set_colmap.img_shape[1:])
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
