@@ -111,6 +111,7 @@ def build_extrinsic_per_image(images_info):
         translation_vectors[image_id] = translation_vector 
         rotation_matricies[image_id] = rotation_matrix
         extrinsic_matricies[image_id] = extrinsic_matrix
+
         print(f"{translation_vector=}")
         print(f"{rotation_matrix=}")
         print(f"{extrinsic_matrix=}")
@@ -122,30 +123,30 @@ def build_extrinsic_per_image(images_info):
 
     def read_points3D_text(path):
 
-    points3D = {}
-    with open(path, "r") as fid:
-        while True:
-            line = fid.readline()
-            if not line:
-                break
-            line = line.strip()
-            if len(line) > 0 and line[0] != "#":
-                elems = line.split()
-                point3D_id = int(elems[0])
-                xyz = np.array(tuple(map(float, elems[1:4])))
-                rgb = np.array(tuple(map(int, elems[4:7])))
-                error = float(elems[7])
-                image_ids = np.array(tuple(map(int, elems[8::2])))
-                point2D_idxs = np.array(tuple(map(int, elems[9::2])))
-                points3D[point3D_id] = Point3D(
-                    id=point3D_id,
-                    xyz=xyz,
-                    rgb=rgb,
-                    error=error,
-                    image_ids=image_ids,
-                    point2D_idxs=point2D_idxs,
-                )
-    return points3D
+        points3D = {}
+        with open(path, "r") as fid:
+            while True:
+                line = fid.readline()
+                if not line:
+                    break
+                line = line.strip()
+                if len(line) > 0 and line[0] != "#":
+                    elems = line.split()
+                    point3D_id = int(elems[0])
+                    xyz = np.array(tuple(map(float, elems[1:4])))
+                    rgb = np.array(tuple(map(int, elems[4:7])))
+                    error = float(elems[7])
+                    image_ids = np.array(tuple(map(int, elems[8::2])))
+                    point2D_idxs = np.array(tuple(map(int, elems[9::2])))
+                    points3D[point3D_id] = Point3D(
+                        id=point3D_id,
+                        xyz=xyz,
+                        rgb=rgb,
+                        error=error,
+                        image_ids=image_ids,
+                        point2D_idxs=point2D_idxs,
+                    )
+        return points3D
         
 
 def main():
