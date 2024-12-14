@@ -115,8 +115,7 @@ def build_extrinsic_per_image(images_info):
         extrinsic_matricies[image_id] = extrinsic_matrix
         print(f"{translation_vector=}")
         print(f"{rotation_matrix=}")
-        print(f"{translation_vector=}")
-
+        print(f"{extrinsic_matrix=}")
     
     return extrinsic_matricies, rotation_matricies, translation_vectors
         
