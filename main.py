@@ -26,7 +26,7 @@ hparams = {
     'regularization_weight': 0.01,
     'densification_interval':100,
     'densify_until_iteration':5,
-    'dssim_scale':0.5
+    'dssim_scale':0.2
 }
 
 def g_splat():
@@ -60,17 +60,43 @@ def g_splat():
     loss_fn = nn.L1Loss()
     dssim_scale = hparams['dssim_scale']
 
+
+    ########## TEST
+    from PIL import Image
+    from torchvision.transforms import v2
+
+    img_transform = v2.Compose([
+        v2.ToImage(),
+        v2.Resize(size=(1080, 1920)),
+        v2.ToDtype(torch.float32, scale=True),
+    ])
+
+    img_file1 = "data/yosemite1.jpg"
+
+    if not torch.cuda.is_available():
+        raise Exception("CUDA is required for fused-ssim")
+    
+    device = torch.device("cuda")
+    print(f"Running model on device: {device}")
+
+    img1 = Image.open(img_file1).convert("RGB")
+    img1 = img_transform(img1)
+    img1 = img1.unsqueeze(0)
+    img1 = img1.to(device)
+    #############
+
+
     # Train
     num_epochs = hparams["num_epochs"]
     for epoch in range(num_epochs):
-        optimizer.zero_grad()
+        optimizer.zero_grad(set_to_none=True)
 
         for i in range(dataset.num_images):
             camera     = dataset.cameras[i]
             target_img = dataset.images[i]
 
             # Rasterize the scene given a camera
-            img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
+            img_out, viewspace_points, visible_filter = rasterizer.forward(scene, observer)
 
             if (i == 0) and ((epoch + 1) % 10 == 0 or epoch == 0):
                 rgb, _, _ = rasterizer.forward(scene, camera)
@@ -83,9 +109,9 @@ def g_splat():
                 plt.show()
 
             # Compute loss (rendering loss + dssim)
-            ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), target_img.unsqueeze(0))
+            ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), img1.unsqueeze(0))
 
-            l1_loss = loss_fn(img_out, target_img) * 10
+            l1_loss = loss_fn(img_out, img1)
 
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
@@ -93,7 +119,6 @@ def g_splat():
             # Backward pass
             total_loss.backward()
             optimizer.step()
-            optimizer.zero_grad(set_to_none = True)
 
             #Refinement Iteration
             # if epoch < hparams["densify_until_iteration"]:
