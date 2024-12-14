@@ -18,7 +18,7 @@ class Scene():
 
         if init_method == "random":
             self.points, self.opacities, self.scales, self.rots, self.colors = \
-                self.get_random_points(density=0.5)
+                self.get_random_points(density=1)
         elif init_method == 'from-dataset':
             pass
 

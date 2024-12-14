@@ -6,12 +6,14 @@ from model.scene import Scene
 import torch
 import torch.nn as nn
 
-class GausRast():
+class GausRast(nn.Module):
     def __init__(self, torch_device = torch.device("cuda")):
+        super(GausRast, self).__init__()
         self.device = torch_device
         self.bg_clr = torch.tensor([0.0,0.0,0.0], device=self.device, dtype=torch.float32)
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
+        self.exp = torch.exp
 
     def forward(self, scene : Scene, camera : Camera):
 
@@ -34,15 +36,16 @@ class GausRast():
 
         rasterizer = GaussianRasterizer(raster_settings)
 
-        scales = self.relu(scene.scales)
-        colors = self.sigmoid(scene.colors)
+        scales    = self.exp(scene.scales)
+        colors    = self.sigmoid(scene.colors)
+        opacities = self.sigmoid(scene.opacities)
 
         rgb, radii, depth = rasterizer(
             means3D=scene.points,
             means2D=viewspace_points,
             shs=None,
             colors_precomp=colors,
-            opacities=scene.opacities,
+            opacities=opacities,
             scales=scales,
             rotations=scene.rots,
         )
