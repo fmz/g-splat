@@ -67,7 +67,7 @@ def get_colmap_images_info(file_path):
 
     return images_info
 
-def build_k_matrix(images_info):
+def build_k_matrix(camera_info):
     params = camera_info["params"]
     focal = params[0]
     principle_x = params[1]
