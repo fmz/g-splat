@@ -38,15 +38,15 @@ class GausRast(nn.Module):
         rasterizer = GaussianRasterizer(raster_settings)
 
         scales    = self.exp(scene.scales)
-        colors    = self.sigmoid(scene.colors)
+        shs       = scene.features
         opacities = self.sigmoid(scene.opacities)
         rotations = self.normalize(scene.rots)
 
         rgb, radii, depth = rasterizer(
             means3D=scene.points,
             means2D=viewspace_points,
-            shs=None,
-            colors_precomp=colors,
+            shs=shs,
+            colors_precomp=None,
             opacities=opacities,
             scales=scales,
             rotations=rotations,

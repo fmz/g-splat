@@ -2,6 +2,8 @@ from typing import NamedTuple
 import torch
 import torch.nn as nn
 import numpy as np
+from utils.sh_utils import RGB2SH
+
 
 class BoundingBox(NamedTuple):
     lo: np.array
@@ -12,7 +14,8 @@ class Scene():
     def __init__(self,
                  bbox : BoundingBox,
                  torch_device = torch.device('cuda'),
-                 init_method="random"):
+                 init_method="random",
+                 max_sh_degree=4):
         self.device = torch_device
         self.bbox   = bbox
 
@@ -26,7 +29,12 @@ class Scene():
         self.opacities = nn.Parameter(torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True))
         self.scales    = nn.Parameter(torch.tensor(self.scales, device=self.device, dtype=torch.float32, requires_grad=True))
         self.rots      = nn.Parameter(torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True))
-        self.colors    = nn.Parameter(torch.tensor(self.colors, device=self.device, dtype=torch.float32, requires_grad=True))
+        
+        # Colors
+        self.sh_clrs         = RGB2SH(torch.tensor(self.colors, device=self.device, dtype=torch.float32))
+        self.features        = torch.zeros((self.sh_clrs.shape[0], max_sh_degree**2, 3), device=self.device, dtype=torch.float32)
+        self.features[:,0,:] = self.sh_clrs
+        self.features        = nn.Parameter(self.features).requires_grad_(True)
 
         self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
 
@@ -43,8 +51,8 @@ class Scene():
 
         opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.5, 0.5, 0.5])
-        scl_cov  = np.array([0.2, 0.2, 0.2])
+        scl_mean = np.array([0.01, 0.01, 0.01])
+        scl_cov  = np.array([0.1, 0.1, 0.1])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))
 
@@ -52,7 +60,6 @@ class Scene():
         rots /= np.linalg.norm(rots, axis=1, keepdims=True)
 
         colors = np.random.uniform(0.0, 1.0, (num_pts, 3))
-
 
         return points, opacities, scales, rots, colors
 
@@ -62,7 +69,7 @@ class Scene():
                 {'params': [self.opacities], 'lr': lrs['opacity']},
                 {'params': [self.scales], 'lr': lrs['scale']},
                 {'params': [self.rots], 'lr': lrs['rotation']},
-                {'params': [self.colors], 'lr': lrs['color']},
+                {'params': [self.features], 'lr': lrs['color']},
                 ]
     
     def regularization_loss(self):
