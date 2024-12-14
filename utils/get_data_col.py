@@ -30,7 +30,7 @@ def get_colmap_camera_info(file_path):
 
 def get_colmap_images_info(file_path):
    
-    global images_info = []
+    images_info = []
    
     with open(file_path, 'r') as file:
          while True:
@@ -163,9 +163,10 @@ def main():
     print("Getting Image Information")
     images_info = get_colmap_images_info(args.image_path)
     print("Building Extrinsic Matricies")
-    build_extrinsic_per_image(images_info)
+    extrinsics = build_extrinsic_per_image(images_info)
     print("Gathering Point Clouds")
-    read_points3D_text(args.points_path)
+    points3d = read_points3D_text(args.points_path)
+    
 
 if __name__=="__main__":
     parser = ArgumentParser("Parser")
