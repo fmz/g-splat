@@ -88,7 +88,7 @@ def main():
     print("here")
     camera_info = get_colmap_camera_info(args.camera_path)
     intrinsic = build_k_matrix(camera_info)
-    print(f{intrinsic=})
+    print(f"{intrinsic=}")
     get_colmap_images_info(args.image_path)
 
 if __name__=="__main__":
