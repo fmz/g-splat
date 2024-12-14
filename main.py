@@ -10,11 +10,19 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
+learning_rates = {
+    'opacity': 0.05,
+    'scale': 0.005,
+    'rotation': 0.001,
+    'position': 0.0001,
+    'color': 0.0025
+
+}
 
 hparams = {
-    'learning_rate': 0.1,
+    'lrs': learning_rates,
     'num_epochs': 100,
-    'regularization_weight': 0.0001,
+    'regularization_weight': 0.01,
     'densification_interval':100,
     'densify_until_iteration':5,
     'dssim_scale':0.5
@@ -29,16 +37,17 @@ def g_splat():
     data = Dataset("data/cube")
 
     observer = Camera(data.img_shape[1:])
-    observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
+    observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
-    bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
+    bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
     scene = Scene(bbox)
 
     rasterizer = GausRast()
 
     # Optimizer & loss setup
-    params = scene.get_optimizable_params()
-    optimizer = optim.Adam(params, hparams["learning_rate"])
+    params = scene.get_optimizable_params(hparams['lrs'])
+    # Learning rate is specified for each param separately
+    optimizer = optim.Adam(params, 0.0)
     loss_fn = nn.L1Loss()
     dssim_scale = hparams['dssim_scale']
 
@@ -53,7 +62,7 @@ def g_splat():
 
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
-            
+
             if (i == 0) and ((epoch + 1) % 10 == 0 or epoch == 0):
                 rgb, _, _ = rasterizer.forward(scene, observer)
 
@@ -63,12 +72,10 @@ def g_splat():
                 plt.show()
 
             # Compute loss (rendering loss + dssim)
-            img_out    = img_out.unsqueeze(0)
-            target_img = target_img.unsqueeze(0)
-            ssim_loss  = 1.0 - fused_ssim(img_out, target_img)
+            ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), target_img.unsqueeze(0))
 
-            l1_loss = loss_fn(img_out, target_img)
-            
+            l1_loss = loss_fn(img_out, target_img) * 10
+
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
             total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
