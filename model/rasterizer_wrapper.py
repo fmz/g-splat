@@ -14,6 +14,7 @@ class GausRast(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.exp = torch.exp
+        self.normalize = nn.functional.normalize
 
     def forward(self, scene : Scene, camera : Camera):
 
@@ -39,6 +40,7 @@ class GausRast(nn.Module):
         scales    = self.exp(scene.scales)
         colors    = self.sigmoid(scene.colors)
         opacities = self.sigmoid(scene.opacities)
+        rotations = self.normalize(scene.rots)
 
         rgb, radii, depth = rasterizer(
             means3D=scene.points,
@@ -47,7 +49,7 @@ class GausRast(nn.Module):
             colors_precomp=colors,
             opacities=opacities,
             scales=scales,
-            rotations=scene.rots,
+            rotations=rotations,
         )
 
         # # A couple test gaussians:
