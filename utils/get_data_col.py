@@ -152,7 +152,6 @@ def read_points3D_text(path):
                 }
     return points3D
 
-def break
         
 
 def main():
