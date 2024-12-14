@@ -38,9 +38,10 @@ def test_renderer():
     cam_right = tan_width_angle_by_2 * cam_near
     cam_left = -cam_right
 
-    view = glm.lookAt(cam_pos, cam_focus_on, cam_up)
-    # hack:
-    view[3, 2] *= -1
+    # Hack: we need to look down the +Z dimension (hence the '-'es)
+    view = glm.lookAt(-cam_pos, cam_focus_on, cam_up)
+    view[3] *= -1
+    view[3,3] = 1
     view_torch = torch.tensor(view.to_tuple(), device=device)
 
     proj_glm = glm.perspective(cam_height_angle, aspect_ratio, cam_near, cam_far)
