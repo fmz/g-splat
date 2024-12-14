@@ -137,14 +137,14 @@ def read_points3D_text(path):
                 error = float(elems[7])
                 image_ids = np.array(tuple(map(int, elems[8::2])))
                 point2D_idxs = np.array(tuple(map(int, elems[9::2])))
-                points3D[point3D_id] = Point3D(
-                        id=point3D_id,
-                        xyz=xyz,
-                        rgb=rgb,
-                        error=error,
-                        image_ids=image_ids,
-                        point2D_idxs=point2D_idxs,
-                    )
+                points3D[point3D_id] = {
+                        'id' : point3D_id,
+                        'xyz' :xyz,
+                        'rgb' :rgb,
+                        'error' :error,
+                        'image_ids' :image_ids,
+                        'point2D_idxs' : point2D_idxs,
+                }
     print(points3D)
     return points3D
         
