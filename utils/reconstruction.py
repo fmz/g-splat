@@ -55,7 +55,7 @@ def get_colmap_images_info(file_path):
                     ]
                 )
                 point3D_ids = np.array(tuple(map(int, elems[2::3])))
-                image_info.append({
+                images_info.append({
                 'image_id': image_id,
                 'quaternion': qvec,
                 'translation_vector': tvec,
