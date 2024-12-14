@@ -45,7 +45,7 @@ def get_colmap_images_info(file_path):
             tvec = np.array(tuple(map(float, elems[5:8])))
             camera_id = int(elems[8])
             image_name = elems[9]
-            elems = file.readlines().split()
+            elems = file.readline().split()
             xys = np.column_stack(
                 [
                     tuple(map(float, elems[0::3])),
