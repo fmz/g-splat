@@ -88,7 +88,7 @@ class Scene():
         self.optimizer = optim.Adam(params, 0.0)
 
     def update_parameters(self, update_dict, pruning = False):
-        print("Point tensor print: " + str(update_dict['point']))
+        #print("Point tensor print: " + str(update_dict['point']))
         self.points    = update_dict['point']
         self.opacities = update_dict['opacity']
         self.scales    = update_dict['scale']
