@@ -22,7 +22,6 @@ def get_colmap_camera_info(file_path):
             camera_info['width'] =  width
             camera_info['height'] = height
             camera_info['params'] = params
-    print(f"{camera_info=}")
 
     return camera_info
 
@@ -62,7 +61,6 @@ def get_colmap_images_info(file_path):
                 'point3D_ids': point3D_ids
                 })
 
-    print(f"{images_info=}")
 
     return images_info
 
@@ -78,9 +76,10 @@ def build_k_matrix(camera_info):
 
 
 def build_extrinsic_per_image(images_info):
-    translation_vectors = {}
-    rotation_matricies = {}
-    extrinsic_matricies = {}
+    translation_vectors = []
+    rotation_matricies = []
+    extrinsic_matricies = []
+    images = []
     for image_info in images_info:
         image_info = images_info[image_info]
         image_id = image_info['image_id']
@@ -110,15 +109,13 @@ def build_extrinsic_per_image(images_info):
         ])
         extrinsic_matrix = np.hstack((rotation_matrix,translation_vector))
 
-        translation_vectors[image_id] = translation_vector 
-        rotation_matricies[image_id] = rotation_matrix
-        extrinsic_matricies[image_id] = extrinsic_matrix
+        translation_vectors.append(translation_vector)
+        rotation_matricies.append(rotation_matrix)
+        extrinsic_matricies.append(extrinsic_matrix)
+        images.append(image_info['image_name'])
 
-        # print(f"{translation_vectors=}")
-        # print(f"{rotation_matricies=}")
-        # print(f"{extrinsic_matricies=}")
     
-    return extrinsic_matricies, rotation_matricies, translation_vectors
+    return extrinsic_matricies, rotation_matricies, translation_vectors, images
 
 
 ###Models adopted from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L113

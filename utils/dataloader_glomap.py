@@ -19,28 +19,48 @@ class Dataset_Colmap():
 
     def __init__(self, img_txt,camera_txt,image_path,  torch_device=torch.device('cuda')):
         self.device = torch_device
-        self.cam_r = []
-        self.cam_k = []
-        self.cam_t = []
         images_info = get_colmap_images_info(img_txt)
         camera_info = get_colmap_camera_info(camera_txt)
-        self.img_shape = (camera_info["width"], camera_info["height"])
         k_matrix = build_k_matrix(camera_info)
-        extrinsic_matricies, rotation_matricies, translation_vectors = build_extrinsic_per_image(image_info)
+        extrinsic_matricies, rotation_matricies, translation_vectors,images = build_extrinsic_per_image(images_info)
         self.num_images = len(images_info)
-        for i in len(num_images):
 
-            self.cam_r[i] = torch.tensor(rotation_matricies[i], device = self.device , dtype=torch.float32)
-            self.cam_K[i] = torch.tensor(k_matrix, device = self.device , dtype=torch.float32)
-            self.cam_t[i] = torch.tensor(translation_vector[i], device = self.device , dtype=torch.float32)
-            self.images[i] = image_path+"/"+images_info[i]['image_name']
+        # self.cam_K   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
+        # self.cam_R   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
+        # self.cam_t   = torch.zeros((self.num_images, 3, 1), device=self.device, dtype=torch.float32)
+        # self.cam_mat = torch.zeros((self.num_images, 3, 4), device=self.device, dtype=torch.float32)
+        # self.cam_pos = torch.zeros((self.num_images, 3), device=self.device, dtype=torch.float32)
+        self.images = []
+        
+        self.cam_R = torch.tensor(rotation_matricies, device = self.device , dtype=torch.float32)
+        self.cam_K = torch.tensor(k_matrix, device = self.device , dtype=torch.float32)
+        self.cam_t = torch.tensor(translation_vectors, device = self.device , dtype=torch.float32)
+        for image_name in images:
+            #print(image_name)
+            if not image_name.endswith(".jpg"):
+                image_name = image_name+".jpg"
+            img_path = image_path+"/"+image_name
+            image = Image.open(img_path)
+                # The current dataset has images that have alpha in them
+            image = np.array(image, dtype='float32')
+            image = image[:,:,:3]
+            image /= 255.0
+            # Convert to CHW
+            image = np.permute_dims(image, (2,0,1))
+            image = torch.tensor(image, device=self.device, dtype=torch.float32)
+            image = image / 255.0
+            image = image.to(self.device)
 
+            self.images.append(image)
+        self.img_shape = self.images[0].shape
+        width = camera_info['width']
+        height = camera_info['height']
         self.cameras = []
         for i in range(self.num_images):
             cam = Camera()
-            cam.setup_cam_from_view_and_proj(
+            cam.glo_map_setup_cam_from_view_and_proj(
                 torch.cat((self.cam_R[i], self.cam_t[i]), dim=1).cpu().detach().numpy(),
-                self.cam_K[i].cpu().detach().numpy()
+                self.cam_K.cpu().detach().numpy(), width, height
             )
             self.cameras.append(cam)
             

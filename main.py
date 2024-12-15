@@ -42,7 +42,6 @@ def g_splat():
     point_txt = "data/db/drjohnson/images/points3D.txt"
     image_path = "data/db/drjohnson/images/input"
     data_set_colmap = Dataset_Colmap(image_txt,camera_txt,image_path)
-
     observer = Camera(data_set_colmap.img_shape[1:])
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
 
@@ -63,9 +62,9 @@ def g_splat():
     for epoch in range(num_epochs):
         optimizer.zero_grad()
 
-        for i in range(data.num_images):
-            camera     = data.cameras[i]
-            target_img = data.images[i]
+        for i in range(data_set_colmap.num_images):
+            camera     = data_set_colmap.cameras[i]
+            target_img = data_set_colmap.images[i]
 
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
@@ -86,7 +85,7 @@ def g_splat():
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
             total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
-
+            breakpoint()
             # Backward pass
             total_loss.backward()
             optimizer.step()
