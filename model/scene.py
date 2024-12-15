@@ -2,7 +2,7 @@ from typing import NamedTuple
 import torch
 import torch.nn as nn
 import numpy as np
-
+from utils.get_data_col import read_points3D_text
 
 class BoundingBox(NamedTuple):
     lo: np.array
@@ -22,13 +22,13 @@ class Scene():
                 self.get_random_points(density=0.5)
         elif init_method == 'from-dataset':
             output,self.points, self.colors = read_points3D_text(points_txt)
-            self.opacities = torch.full(len(output), 1)
-            self.points = points3d_coord
+            self.opacities = torch.ones(len(output))
             x, z, self.scales, self.rots, y = \
                 self.get_random_points(density=0.5)
             pass
 
         self.points    = nn.Parameter(torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True))
+        print(self.points)
         self.opacities = nn.Parameter(torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True))
         self.scales    = nn.Parameter(torch.tensor(self.scales, device=self.device, dtype=torch.float32, requires_grad=True))
         self.rots      = nn.Parameter(torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True))

@@ -6,6 +6,7 @@ class Camera():
     def __init__(self, out_img_size = (0,0), torch_device = torch.device("cuda")):
         self.device = torch_device
         # Output params
+        print(out_img_size)
         self.h = int(out_img_size[0])
         self.w = int(out_img_size[1])
 
@@ -85,6 +86,38 @@ class Camera():
         # Projection params
         self.w = int(K[0,2]*2)
         self.h = int(K[1,2]*2)
+
+        self.aspect_ratio = self.w/self.h
+
+        # Recover fov (from Szeliski: tan(theta/2) = W/2f))
+        f_w = K[0,0]
+        f_h = K[1,1]
+        self.tanfovx = self.w / (2 * f_w)
+        self.tanfovy = self.h / (2 * f_h)
+
+        self.cam_height_angle = np.atan(self.tanfovy) * 2
+  
+        proj_glm = glm.perspective(self.cam_height_angle, self.aspect_ratio, self.cam_near, self.cam_far)
+
+        torch_proj = torch.tensor(proj_glm.to_tuple(), device=self.device, dtype=torch.float32)
+
+        self.proj = torch_proj @ self.view
+
+    def glo_map_setup_cam_from_view_and_proj(self, Rt : np.array, K : np.array, width, height):
+        # Find the camera origin
+        zeros_and_1 = np.array([0, 0, 0, 1])
+        zeros_and_1 = np.expand_dims(zeros_and_1, axis=0)
+        view_4x4 = np.concatenate((Rt, zeros_and_1), axis=0)
+        view_inv = np.linalg.inv(view_4x4)
+        cam_pos = view_inv @ np.array([0,0,0,1], dtype='float32')
+        self.pos = torch.tensor(cam_pos[:3], device=self.device, dtype=torch.float32)
+        view_4x4[2,:] *= -1 # HACK
+        # View matrix (needs to be column major)
+        self.view = torch.tensor(view_4x4, device=self.device, dtype=torch.float32).T
+
+        # Projection params
+        self.w = width
+        self.h = height
 
         self.aspect_ratio = self.w/self.h
 
