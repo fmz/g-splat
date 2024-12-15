@@ -10,6 +10,12 @@ import os
 colmap_command = "colmap"
 glomap_command = "glomap"
 
+def resize():
+    images_path = arg.source_path + "/input"
+    img_dir = os.listdir(images_path)
+    for img_dir 
+
+
 def extract_features(database_path):
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path +  " --image_path " + args.source_path + "/input --ImageReader.single_camera 1 \
         --ImageReader.camera_model SIMPLE_PINHOLE"  + " \
@@ -29,15 +35,24 @@ def map_features(database_path):
 
 def undistort():
     undist_cmd = colmap_command + " image_undistorter --image_path " + args.source_path + "/input \
-    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + " --output_type COLMAP"
+    --input_path " +args.source_path + "/sparse/0"+ " --output_path " + args.source_path + "/dense/ --output_type COLMAP"
     exit_code = os.system(undist_cmd)
     return
 
-# def binary_to_text():
-#     b_to_t_cmd = colmap_command + " model_converter --input_path " +args.source_path+"/sparse/0" + " -- output_path "+args.source_path+"/sparse/1" + " --output_type TXT "
-#     exit_code = os.system(b_to_t_cmd)
-#     return
+def dense_stero():
+    dense_cmd = colmap_command +" patch_match_stereo \
+    --workspace_path "+ args.source_path +"/dense/ \
+    --workspace_format COLMAP \
+    --PatchMatchStereo.geom_consistency 1"
+    exit_code = os.system(dense_cmd)
+    return 
 
+def dense_fusion():
+    fusion_cmd = colmap_command +" stereo_fusion \
+    --workspace " + args.source_path +"/dense/ --workspace_format COLMAP\
+    --input_type geometric --output_path dense/fused.ply --use_gpu 1"
+    exit_code = os.system(fusion_cmd)
+    return
 
 
 def main():
@@ -53,6 +68,10 @@ def main():
     map_features(database_path)
     print("Distorting")
     undistort()
+    print("Dense Stereo")
+    dense_stero()
+    print("Dense Fusion")
+    dense_fusion()
     #print("Converting file types")
     #binary_to_text()
 
