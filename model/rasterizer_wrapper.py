@@ -89,5 +89,5 @@ class GausRast(nn.Module):
         #     rotations      = g_rots
         # )
 
-        visible_filter = (radii > 0).nonzero
+        visible_filter = (radii > 0).nonzero()
         return rgb, viewspace_points, visible_filter
