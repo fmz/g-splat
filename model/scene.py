@@ -19,16 +19,15 @@ class Scene():
 
         if init_method == "random":
             self.points, self.opacities, self.scales, self.rots, self.colors = \
-                self.get_random_points(density=0.5)
+                self.get_random_points(self.get_num_points_for_bbox(density=0.5))
         elif init_method == 'from-dataset':
             output,self.points, self.colors = read_points3D_text(points_txt)
-            self.opacities = torch.ones(len(output))
+            num_pts = len(output)
+            self.opacities = np.ones((num_pts, 1))
             x, z, self.scales, self.rots, y = \
-                self.get_random_points(density=0.5)
-            pass
+                self.get_random_points(num_pts)
 
         self.points    = nn.Parameter(torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True))
-        print(self.points)
         self.opacities = nn.Parameter(torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True))
         self.scales    = nn.Parameter(torch.tensor(self.scales, device=self.device, dtype=torch.float32, requires_grad=True))
         self.rots      = nn.Parameter(torch.tensor(self.rots, device=self.device, dtype=torch.float32, requires_grad=True))
@@ -37,20 +36,25 @@ class Scene():
         self.viewspace_grad_accum = torch.zeros_like(self.points, device=self.device)
 
     # Density is points per unit area
-    def get_random_points(self, density=1, seed=None):
+    def get_num_points_for_bbox(self, density=1):
         bbox_range = self.bbox.hi - self.bbox.lo
         num_pts = np.round(bbox_range * density).astype('int')
         num_pts = np.prod(num_pts)
 
+        return num_pts
+
+    def get_random_points(self, num_pts, seed=None):
         rng = np.random.default_rng(seed)
 
+        bbox_range = self.bbox.hi - self.bbox.lo
+        
         points = rng.uniform(0.0, 1.0, (num_pts, 3))
         points = points * bbox_range + self.bbox.lo
 
         opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.5, 0.5, 0.5])
-        scl_cov  = np.array([0.2, 0.2, 0.2])
+        scl_mean = np.array([0.005, 0.005, 0.005])
+        scl_cov  = np.array([0.01, 0.01, 0.01])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))
 

@@ -23,7 +23,7 @@ class Dataset_Colmap():
         camera_info = get_colmap_camera_info(camera_txt)
         k_matrix = build_k_matrix(camera_info)
         extrinsic_matricies, rotation_matricies, translation_vectors,images = build_extrinsic_per_image(images_info)
-        self.num_images = len(images_info)
+        self.num_images = len(images)
 
         # self.cam_K   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
         # self.cam_R   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
@@ -48,15 +48,14 @@ class Dataset_Colmap():
             # Convert to CHW
             image = np.permute_dims(image, (2,0,1))
             image = torch.tensor(image, device=self.device, dtype=torch.float32)
-            image = image / 255.0
-            image = image.to(self.device)
-
             self.images.append(image)
+            
         self.img_shape = self.images[0].shape
         width = camera_info['width']
         height = camera_info['height']
         self.cameras = []
-        for i in range(self.num_images):
+        for i in range(len(self.images)):
+            
             cam = Camera()
             cam.glo_map_setup_cam_from_view_and_proj(
                 torch.cat((self.cam_R[i], self.cam_t[i]), dim=1).cpu().detach().numpy(),

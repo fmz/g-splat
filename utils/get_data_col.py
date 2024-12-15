@@ -1,4 +1,3 @@
-import pycolmap
 import numpy as np
 from argparse import ArgumentParser
 
@@ -80,7 +79,11 @@ def build_extrinsic_per_image(images_info):
     rotation_matricies = []
     extrinsic_matricies = []
     images = []
-    for image_info in images_info:
+    for i, image_info in enumerate(images_info):
+        # Hack to make data fit on gpu
+        if i % 2:
+            continue
+
         image_info = images_info[image_info]
         image_id = image_info['image_id']
         
@@ -136,7 +139,7 @@ def read_points3D_text(path):
                 point3D_id = int(elems[0])
                 xyz = np.array(tuple(map(float, elems[1:4])))
                 points3d_coord.append(xyz)
-                rgb = np.array(tuple(map(int, elems[4:7])))
+                rgb = np.array(tuple(map(int, elems[4:7])), dtype='float') / 255.0
                 points3d_rgb.append(rgb)
                 error = float(elems[7])
                 image_ids = np.array(tuple(map(int, elems[8::2])))

@@ -68,13 +68,15 @@ def g_splat():
 
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
-
+    
             if (i == 0) and ((epoch + 1) % 10 == 0 or epoch == 0):
-                rgb, _, _ = rasterizer.forward(scene, observer)
+                rgb, _, _ = rasterizer.forward(scene, camera)
 
                 rgb = rgb.cpu().detach()
                 rgb = rgb.permute((1,2,0))
                 plt.imshow(rgb)
+                plt.show()
+                plt.imshow(target_img.cpu().detach().permute((1,2,0)))
                 plt.show()
 
             # Compute loss (rendering loss + dssim)
@@ -85,7 +87,6 @@ def g_splat():
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
             total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
-            breakpoint()
             # Backward pass
             total_loss.backward()
             optimizer.step()

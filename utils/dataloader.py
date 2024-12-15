@@ -59,9 +59,6 @@ class Dataset():
                 # Convert to CHW
                 image = np.permute_dims(image, (2,0,1))
                 image = torch.tensor(image, device=self.device, dtype=torch.float32)
-                image = image / 255.0
-                image = image.to(self.device)
-
                 self.images.append(image)
 
                 if i == 1:
