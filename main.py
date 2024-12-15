@@ -24,8 +24,8 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval':1000,
-    'densify_until_iteration':5,
+    'densification_interval':5,
+    'densify_until_iteration':20,
     'dssim_scale':0.2
 }
 
@@ -54,9 +54,8 @@ def g_splat():
     rasterizer = GausRast()
 
     # Optimizer & loss setup
-    params = scene.get_optimizable_params(hparams['lrs'])
+    scene.init_optimizer(hparams['lrs'])
     # Learning rate is specified for each param separately
-    optimizer = optim.Adam(params, 0.0)
     loss_fn = nn.L1Loss()
     dssim_scale = hparams['dssim_scale']
 
@@ -86,13 +85,12 @@ def g_splat():
     newsize = (1920, 1080)
     img1 = img1.resize(newsize)
 
+    #New v2 img1 loading
     #img1 = img_transform(img1)
 
     #Old version img1 loading
     img1 = np.array(img1, dtype='float32')
-    #img1 = img1[:,:,:3]
-    #img1 /= 255.0
-    # Convert to CHW
+
     #img1 = np.permute_dims(img1, (2,0,1))
     img1 = np.transpose(img1, (2,0,1))
     img1 = torch.tensor(img1, device=device, dtype=torch.float32)
@@ -103,7 +101,7 @@ def g_splat():
     # Train
     num_epochs = hparams["num_epochs"]
     for epoch in range(num_epochs):
-        optimizer.zero_grad(set_to_none=True)
+        scene.optimizer.zero_grad(set_to_none=True)
 
         for i in range(dataset.num_images):
             camera     = dataset.cameras[i]
@@ -132,12 +130,13 @@ def g_splat():
             total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
             # Backward pass
             total_loss.backward()
-            optimizer.step()
+            scene.optimizer.step()
 
             #Refinement Iteration
-            # if epoch < hparams["densify_until_iteration"]:
-            #     if (epoch + 1) % hparams["densification_interval"] == 0:
-            #         scene.prune_and_densify(viewspace_points, visible_filter)
+            scene.add_densification_data(viewspace_points, visible_filter)
+            if epoch < hparams["densify_until_iteration"]:
+                if (epoch + 1) % hparams["densification_interval"] == 0:
+                    scene.prune_and_densify()
 
 
             # Logging
