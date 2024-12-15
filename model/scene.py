@@ -88,6 +88,7 @@ class Scene():
         self.optimizer = optim.Adam(params, 0.0)
 
     def update_parameters(self, update_dict, pruning = False):
+        print("Point tensor print: " + str(update_dict['point']))
         self.points    = update_dict['point']
         self.opacities = update_dict['opacity']
         self.scales    = update_dict['scale']
@@ -103,14 +104,44 @@ class Scene():
         update_dict= {}
         for group in self.optimizer.param_groups:
             new_params = new_dict[group['name']]
-            group["params"][0] = nn.Parameter(torch.cat((group["params"][0],new_params), dim=0).requires_grad_(True))
+            current_state = self.optimizer.state.get(group['params'][0], None)
+            if current_state is not None:
+                current_state['exp_avg'] = torch.cat((current_state["exp_avg"],torch.zeros_like(new_params)), dim = 0)
+                current_state['exp_avg_sq'] = torch.cat((current_state["exp_avg_sq"],torch.zeros_like(new_params)), dim=0)
+
+                del self.optimizer.state[group['params'][0]]
+                group["params"][0] = nn.Parameter(torch.cat((group["params"][0],new_params), dim=0).requires_grad_(True))
+                self.optimizer.state[group["params"][0]] = current_state
+            else:
+                group["params"][0] = nn.Parameter(torch.cat((group["params"][0],new_params), dim=0).requires_grad_(True))
+                
             update_dict[group['name']] = group["params"][0]
+            #Check to be sure this isn't a dict
+            assert type(group["params"][0]) == nn.Parameter
 
-        return update_dict
+        self.update_parameters(update_dict)
 
 
-    def remove_from_optimizer(self, new_points, new_opacities, new_scales, new_rots, new_colors):
-        pass
+    def prune_from_optimizer(self, mask):
+        prune_dict = {}
+        for group in self.optimizer.param_groups:
+            current_state = self.optimizer.state.get(group['params'][0], None)
+            if current_state is not None:
+                current_state['exp_avg_sq'] = current_state['exp_avg'][mask]
+                current_state['exp_avg_sq'] = current_state['exp_avg'][mask]
+
+                del self.optimizer.state[group['params'][0]]
+                group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+                self.optimizer.state[group["params"][0]] = current_state
+
+            else:
+                group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+                
+            prune_dict[group['name']] = group["params"][0]
+
+        self.update_parameters(prune_dict, pruning=True)
+        self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
+        self.grad_denominator = self.grad_denominator[mask]
     
     def regularization_loss(self):
         # TODO
@@ -135,7 +166,7 @@ class Scene():
         self.clone_gaussians(viewspace_grads, grad_threshold)
 
         #Pruning
-        self.prune_gaussians(extent=bbox_range)
+        #self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
@@ -185,8 +216,8 @@ class Scene():
         new_colors = self.features.repeat(N,1,1)
 
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
-        updated_dict = self.add_to_optimizer(new_dictionary)
-        self.update_parameters(updated_dict)
+        self.add_to_optimizer(new_dictionary)
+        
 
 
     def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01): #, max_radiis, max_size):
@@ -194,7 +225,7 @@ class Scene():
         size_mask =  torch.max(self.scales, dim = 1).values > extent * percent_dense
         final_mask = torch.logical_or(prune_mask, size_mask)
 
-        self.prune_points(final_mask)
+        self.prune_from_optimizer(final_mask)
 
     def prune_points(self, mask):
         prune_dict = {}
