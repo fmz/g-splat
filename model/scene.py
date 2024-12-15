@@ -82,7 +82,7 @@ class Scene():
         self.opacities = update_dict['opacity']
         self.scales    = update_dict['scale']
         self.rots      = update_dict['rotation']
-        self.colors    = update_dict['color']
+        self.features    = update_dict['color']
 
         if not pruning:
             self.viewspace_grad_accum = torch.zeros((self.points.shape[0],1), device=self.device)
@@ -116,8 +116,8 @@ class Scene():
         for group in self.optimizer.param_groups:
             current_state = self.optimizer.state.get(group['params'][0], None)
             if current_state is not None:
-                current_state['exp_avg_sq'] = current_state['exp_avg'][mask]
-                current_state['exp_avg_sq'] = current_state['exp_avg'][mask]
+                current_state['exp_avg'] = current_state['exp_avg'][mask]
+                current_state['exp_avg_sq'] = current_state['exp_avg_sq'][mask]
 
                 del self.optimizer.state[group['params'][0]]
                 group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
@@ -142,7 +142,7 @@ class Scene():
         print(f"Points mean: {self.points.mean(dim=0)}, std: {self.points.std(dim=0)}")
         print(f"Scales mean: {self.scales.mean(dim=0)}, std: {self.scales.std(dim=0)}")
         print(f"Opacities mean: {self.opacities.mean()}, std: {self.opacities.std()}")
-        print(f"Colors mean: {self.colors.mean(dim=0)}, std: {self.colors.std(dim=0)}")
+        print(f"Colors mean: {self.features.mean(dim=0)}, std: {self.features.std(dim=0)}")
 
     def prune_and_densify(self,  minimum_opacity = 0.05, max_size = 100, grad_threshold = 0.0002):
         
@@ -152,10 +152,10 @@ class Scene():
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
         #self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
-        self.clone_gaussians(viewspace_grads, grad_threshold)
+        self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
 
         #Pruning
-        #self.prune_gaussians(extent=bbox_range)
+        self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
@@ -169,7 +169,7 @@ class Scene():
 
         #Make mask of points that need to be split
         
-        mask = torch.logical_and(torch.where(grads > threshold, True, False), torch.max(self.scales, dim = 1).values > extent * percent_dense)
+        mask = torch.logical_and(torch.where(grads > threshold, True, False), torch.max(self.scales, dim = 1).values > extent[0] * percent_dense)
 
         
         stds = torch.e(self.scales)[mask].repeat(N,1)
@@ -192,17 +192,16 @@ class Scene():
     def build_rotation(self, rots):
         pass
 
-    def clone_gaussians(self, grads, threshold, percent_dense = 0.01, N=2):
+    def clone_gaussians(self, grads, threshold, extent, percent_dense = 0.01, N=2):
         #might need to pad grads to be of shape gaussian_points?
-        bbox_range = self.bbox.hi - self.bbox.lo
-        mask = torch.logical_and(torch.where(grads > threshold, True, False), torch.max(self.scales, dim = 1).values <= bbox_range[0] * percent_dense)
+        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values <= extent[0] * percent_dense)
 
         #Generate new gaussian values
-        new_points = self.points.repeat(N,1)
-        new_opacities = self.opacities.repeat(N,1)
-        new_scales = torch.log(self.scales.repeat(N,1)/(0.8 * N))
-        new_rots = self.rots.repeat(N,1)
-        new_colors = self.features.repeat(N,1,1)
+        new_points = self.points[mask]
+        new_opacities = self.opacities[mask]
+        new_scales = self.scales[mask]
+        new_rots = self.rots[mask]
+        new_colors = self.features[mask]
 
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
         self.add_to_optimizer(new_dictionary)
@@ -211,7 +210,7 @@ class Scene():
 
     def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01): #, max_radiis, max_size):
         prune_mask = (self.opacities < min_opacity).squeeze()
-        size_mask =  torch.max(self.scales, dim = 1).values > extent * percent_dense
+        size_mask =  torch.max(self.scales, dim = 1).values > extent[0] * percent_dense
         final_mask = torch.logical_or(prune_mask, size_mask)
 
         self.prune_from_optimizer(final_mask)

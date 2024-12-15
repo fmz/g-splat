@@ -24,7 +24,7 @@ hparams = {
     'num_epochs': 100,
     'regularization_weight': 0.01,
     'densification_interval':5,
-    'densify_until_iteration':20,
+    'densify_until_iteration':80,
     'dssim_scale':0.2
 }
 
@@ -132,7 +132,7 @@ def g_splat():
 
             # Logging
             if (i==0) and ((epoch + 1) % 10 == 0 or epoch == 0):
-                print(f"Epoch {epoch + 1}/{num_epochs}, L1 Loss: {l1_loss.item():.4f}, SSIM Loss: {ssim_loss.item():.4f} Total Loss: {total_loss.item():.4f}")
+                print(f"Epoch {epoch + 1}/{num_epochs}, L1 Loss: {l1_loss.item():.4f}, SSIM Loss: {ssim_loss.item():.4f} Total Loss: {total_loss.item():.4f}, Num Gaussians: {scene.optimizer.param_groups[0]['params'][0].shape}")
 
             # Optional: Save intermediate rendered images for debugging
             # if (epoch + 1) % 20 == 0:
