@@ -163,6 +163,7 @@ class Scene():
         
 
         #Now, prune original gaussians
+        self.prune_gaussians(mask)
 
     def build_rotation(self, rots):
         pass
@@ -180,8 +181,12 @@ class Scene():
         new_colors = self.features.repeat(N,1,1)
 
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
-        self.add_to_optimizer(new_dictionary)
+        updated_dict = self.add_to_optimizer(new_dictionary)
+        self.update_parameters(updated_dict)
 
-
-    def prune_gaussians(self, opacity, max_radiis, max_size):
-        pass
+    def prune_points(self, mask):
+        prune_dict = {}
+        for group in self.optimizer.param_groups:
+            group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+            prune_dict[group['name']] = group["params"][0]
+        self.update_parameters(prune_dict)
