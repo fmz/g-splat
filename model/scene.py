@@ -148,7 +148,7 @@ class Scene():
         new_opacities = self.opacities.repeat(N,1)
         new_scales = torch.log(self.scales.repeat(N,1)/(0.8 * N))
         new_rots = self.rots.repeat(N,1)
-        new_colors = self.colors.repeat(N,1)
+        new_colors = self.features.repeat(N,1,1)
         
 
         #Now, prune original gaussians
@@ -166,7 +166,7 @@ class Scene():
         new_opacities = self.opacities.repeat(N,1)
         new_scales = torch.log(self.scales.repeat(N,1)/(0.8 * N))
         new_rots = self.rots.repeat(N,1)
-        new_colors = self.colors.repeat(N,1)
+        new_colors = self.features.repeat(N,1,1)
 
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
         self.add_to_optimizer(new_dictionary)

@@ -124,10 +124,10 @@ def g_splat():
             scene.optimizer.step()
 
             #Refinement Iteration
-            scene.add_densification_data(viewspace_points, visible_filter)
-            if epoch < hparams["densify_until_iteration"]:
-                if (epoch + 1) % hparams["densification_interval"] == 0:
-                    scene.prune_and_densify()
+            #scene.add_densification_data(viewspace_points, visible_filter)
+            #if epoch < hparams["densify_until_iteration"]:
+            #    if (epoch + 1) % hparams["densification_interval"] == 0:
+            #        scene.prune_and_densify()
 
 
             # Logging
