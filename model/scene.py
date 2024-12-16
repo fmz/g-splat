@@ -23,8 +23,8 @@ class Scene():
 
         self.max_sh_degree = max_sh_degree
         self.percent_dense = 0.01
-        self.grad_threshold = 0.0002
-        self.min_opacity = 0.005
+        self.grad_threshold = 0.0001
+        self.min_opacity = 0.001
         self.split_factor = int(2)
         self.split_scale_factor = 0.8
         self.log_split_scale_factor_times_split_factor = np.log(self.split_factor * self.split_scale_factor)
@@ -35,7 +35,7 @@ class Scene():
         elif init_method == 'from-dataset':
             output,self.points, self.colors = read_points3D_text(points_txt)
             num_pts = len(output)
-            self.opacities = np.ones((num_pts, 1))
+            self.opacities = np.ones((num_pts, 1)) * -1.0
             x, z, self.scales, self.rots, y = \
                 self.get_random_points(num_pts)
 
@@ -70,7 +70,7 @@ class Scene():
         points = rng.uniform(0.0, 1.0, (num_pts, 3))
         points = points * bbox_range + self.bbox.lo
 
-        opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
+        opacities = rng.uniform(-1.0, 1.0, (num_pts, 1))
 
         scl_mean = np.array([0.05, 0.05, 0.05])
         scl_cov  = np.array([0.01, 0.01, 0.01])
@@ -197,7 +197,7 @@ class Scene():
 
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False), 
-                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 1.5)
+                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 2)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)
@@ -252,7 +252,7 @@ class Scene():
         #print("Cond 2: " + str((torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense).size()))
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False),
-                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.1)
+                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.01)
 
         #Generate new gaussian values
         new_points = self.points[mask]
@@ -270,7 +270,7 @@ class Scene():
         
 
     def prune_gaussians(self, extent, max_size = 20):
-        prune_mask = (self.opacities < self.min_opacity).squeeze()
+        prune_mask = (torch.sigmoid(self.opacities) < self.min_opacity).squeeze()
         #size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * self.percent_dense
         #size_mask_2 = self.max_radii > max_size
         #final_mask = torch.logical_or(torch.logical_or(prune_mask, size_mask_1), size_mask_2)
@@ -292,3 +292,6 @@ class Scene():
         self.update_parameters(prune_dict, pruning=True)
         self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
         self.grad_denominator = self.grad_denominator[mask]
+
+    def reset_opacities(self):
+        opacities = torch.min(self.opacities, torch.tensor([-7.0], device=self.device, dtype=torch.float32))
