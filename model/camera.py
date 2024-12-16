@@ -102,6 +102,17 @@ class Camera():
         torch_proj = torch.tensor(proj_glm.to_tuple(), device=self.device, dtype=torch.float32)
 
         self.proj = torch_proj @ self.view
+    
+    def cam_from_viewer(self, width, height, fovy, fovx, znear, zfar, world_view_transform, full_proj_transform):
+        print('initialzing camera is done')
+        self.w = width
+        self.h = height
+        self.tanfovx = fovx
+        self.tanfovy = fovy
+        self.view = world_view_transform
+        self.proj = full_proj_transform
+
+
 
 
     def log_camera_info(self):

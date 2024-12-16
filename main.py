@@ -3,6 +3,9 @@ from model.scene import Scene, BoundingBox
 from model.camera import Camera
 from model.rasterizer_wrapper import GausRast
 from fused_ssim import fused_ssim
+from utils import network_gui
+import traceback
+import socket
 
 import torch
 import torch.nn as nn
@@ -91,6 +94,7 @@ def g_splat():
     img1 = img1 / 255.0
     #############
 
+    source_path = '/home/arinidhant/workspace/cv/tandt/truck'
 
     # Train
     num_epochs = hparams["num_epochs"]
@@ -104,13 +108,130 @@ def g_splat():
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, observer)
 
-            if (i == 0) and ((epoch + 1) % 25 == 0 or epoch == 0):
-                rgb, _, _ = rasterizer.forward(scene, observer)
+            # if (i == 0) and ((epoch + 1) % 25 == 0 or epoch == 0):
+                # rgb, _, _ = rasterizer.forward(scene, observer)
+                # rgb = rgb.cpu().detach()
+                # rgb = rgb.permute((1,2,0))
 
-                rgb = rgb.cpu().detach()
-                rgb = rgb.permute((1,2,0))
-                plt.imshow(rgb)
-                plt.show()
+            # net_image_clamped = rgb.clamp(0, 1) 
+            # net_image_scaled = (net_image_clamped * 255).byte()
+
+            # # if net_image_scaled.shape[0] == 3:  # Check if channels are first (C, H, W)
+            # #     net_image_scaled = net_image_scaled.permute(1, 2, 0)  # Rearrange to (H, W, C)
+
+            # # Convert to numpy array for compatibility
+            # raw_image = net_image_scaled.contiguous().cpu().numpy()  # Convert to numpy
+
+            # # Handle only RGB channels if alpha exists
+            # raw_image_rgb = raw_image[..., :3]  # Discard alpha if present
+
+            # if network_gui.conn == None:
+            #     network_gui.try_connect()
+            #     print(network_gui.conn)
+            # rgb = img_out.cpu().detach()  # Move tensor to CPU and detach it from computation graph
+            # rgb = torch.clamp(rgb, min=0, max=1)  # Clamp values to [0, 1]
+            # rgb = (rgb * 255).byte()  # Scale to [0, 255] and convert to byte
+
+            # # If the tensor is in (C, H, W) format, permute to (H, W, C)
+            # if rgb.shape[0] == 3:  # Assuming 3 channels means (C, H, W)
+            #     rgb = rgb.permute(1, 2, 0)
+
+            # # Convert to contiguous Numpy array
+            # raw_image_rgb = rgb.contiguous().cpu().numpy()
+
+            # # Convert to memoryview
+            # net_image_bytes = memoryview(raw_image_rgb)
+            # source_path = '/home/arinidhant/workspace/cv/tandt/truck'
+            # print('Success connection')
+            # network_gui.send(net_image_bytes, source_path)
+
+
+
+
+            # rgb = rgb.cpu().detach()
+            # rgb = rgb.permute((1,2,0))
+            # #     plt.imshow(rgb)
+            # #     plt.show()
+            # # net_image = rasterizer.forward(scene, custom_cam)
+            # # raw_image = (net_image.clamp(0, 1) * 255).byte().contiguous().cpu().numpy()
+            # # Scale to [0, 255]
+            # raw_image_rgb = rgb[..., :3]  # Ensure only R, G, B channels are included if img has an alpha channel
+            # net_image_bytes = memoryview((torch.clamp(rgb, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
+                
+            
+            if network_gui.conn == None:
+                network_gui.try_connect()
+                print(network_gui.conn)
+            
+            while network_gui.conn != None:
+                try:
+                    print("We are starting the while loop here)")
+
+                    print("We are receiving here)")
+                    
+                    net_image_bytes = None
+                    
+                    custom_cam, do_training, p2, p3, keep_alive, scaling_modifer = network_gui.receive()
+                    print("Connection status" + str(network_gui.conn))
+                    print("We have received camera and info receiving here)")
+
+                    if custom_cam != None:
+                        print("We are sending data)))))")
+                        rgb, _, _ = rasterizer.forward(scene, observer)
+                        # raw_image = (net_image.clamp(0, 1) * 255).byte().contiguous().cpu().numpy()
+                        print("We are in here))))")
+
+                        rgb = torch.clamp(rgb, min=0, max=1)  # Clamp values to [0, 1]
+                        rgb = rgb.byte().permute(1,2,0).contiguous()
+                        # rgb = rgb.cpu().detach()  # Move tensor to CPU and detach it from computation graph
+                    
+                        # rgb = (rgb * 255).byte()  # Scale to [0, 255] and convert to byte
+
+                        # # If the tensor is in (C, H, W) format, permute to (H, W, C)
+                        # if rgb.shape[0] == 3:  # Assuming 3 channels means (C, H, W)
+                        #     rgb = rgb.permute(1, 2, 0)
+
+                        # # Convert to contiguous Numpy array
+                        raw_image_rgb = rgb.cpu().numpy()
+
+                        # Convert to memoryview
+                        net_image_bytes = memoryview(raw_image_rgb)
+
+
+                        # rgb = rgb.cpu().detach()
+                        # rgb = rgb.permute((1,2,0))
+                        # raw_image_rgb = rgb[..., :3]  # Ensure only R, G, B channels are included if img has an alpha channel
+
+                        # net_image_bytes = memoryview(raw_image_rgb)
+                        
+                        print('Success connection')
+                        network_gui.send(net_image_bytes, source_path)
+                    
+                    else:
+                        network_gui.send(None, source_path)
+
+                    
+                    # source_path = '/home/arinidhant/workspace/cv/tandt/truck'
+                    # network_gui.send(net_image_bytes, source_path)
+                    if do_training:
+                        print("We are exiting the while loop)")
+
+                        break
+
+
+                except socket.timeout:
+                    print("Socket timed out. No data received")
+                    break
+
+                except Exception as e:
+                    print("handling exception")
+                    print(e)
+                    traceback.print_exc() 
+                    network_gui.conn = None
+
+            
+            print("We exited while loop and training now)")
+            
 
             # Compute loss (rendering loss + dssim)
             ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), img1.unsqueeze(0))
@@ -141,4 +262,5 @@ def g_splat():
         
 
 if __name__ == "__main__":
+    network_gui.init("127.0.0.1", 6009)
     g_splat()
