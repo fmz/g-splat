@@ -59,6 +59,8 @@ def g_splat():
 
     # Optimizer & loss setup
     scene.init_optimizer(hparams['lrs'])
+    scene.optimizer.zero_grad(set_to_none=True)
+
     # Learning rate is specified for each param separately
     loss_fn = nn.L1Loss()
     dssim_scale = hparams['dssim_scale']
@@ -105,7 +107,7 @@ def g_splat():
     # Train
     num_epochs = hparams["num_epochs"]
     for epoch in range(num_epochs):
-        scene.optimizer.zero_grad(set_to_none=True)
+        print(f"Starting Epoch {epoch}")
 
         for i in range(dataset.num_images):
             camera     = dataset.cameras[i]
@@ -113,16 +115,6 @@ def g_splat():
 
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter, radii = rasterizer.forward(scene, observer)
-
-            if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
-                rgb, _, _, _= rasterizer.forward(scene, observer)
-
-                rgb = rgb.cpu().detach()
-                rgb = rgb.permute((1,2,0))
-                plt.imshow(rgb)
-                plt.show()
-                plt.imshow(target_img.cpu().detach().permute((1,2,0)))
-                plt.show()
 
             # Compute loss (rendering loss + dssim)
             ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), img1.unsqueeze(0))
@@ -134,15 +126,26 @@ def g_splat():
             total_loss = (1.0 - dssim_scale) * l1_loss + dssim_scale * ssim_loss # + reg_loss
             # Backward pass
             total_loss.backward()
-            scene.optimizer.step()
 
-            #Refinement Iteration
-            #scene.max_radii = torch.max(scene.max_radii, radii)
-            scene.add_densification_data(viewspace_points, visible_filter)
-            if epoch < hparams["densify_until_epoch"]:
-                if ((epoch + 1) % hparams["densification_interval"] == 0) and i == data.num_images - 1:
-                    scene.prune_and_densify()
+            with torch.no_grad():
+                # Viz
+                if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
+                    rgb, _, _, _= rasterizer.forward(scene, observer)
 
+                    rgb = rgb.cpu().detach()
+                    rgb = rgb.permute((1,2,0))
+                    plt.imshow(rgb)
+                    plt.show()
+
+                #Refinement Iteration
+                #scene.max_radii = torch.max(scene.max_radii, radii)
+                scene.add_densification_data(viewspace_points, visible_filter)
+                if epoch < hparams["densify_until_epoch"]:
+                    if ((epoch + 1) % hparams["densification_interval"] == 0) and i == data.num_images - 1:
+                        scene.prune_and_densify()
+
+                scene.optimizer.step()
+                scene.optimizer.zero_grad(set_to_none=True)
 
             # Logging
             if (i==0) and ((epoch + 1) % 1 == 0 or epoch == 0):
