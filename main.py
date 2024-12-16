@@ -47,7 +47,7 @@ def g_splat():
     # point_txt = "data/db/drjohnson/images/points3D.txt"
     # image_path = "data/db/drjohnson/images/input"
     # dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
-    dataset = Dataset('data/cube')
+    dataset = Dataset('data/monkey')
     #observer = Camera(dataset.img_shape[1:])
     observer = Camera((1080,1920))
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 5.0], focus=[0.0, 0.0, 0.0])
