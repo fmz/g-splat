@@ -168,7 +168,7 @@ class Scene():
         self.split_gaussians(grad_avg, extent=bbox_range)
         
         #Pruning
-        self.prune_gaussians(extent=bbox_range)
+        #self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
