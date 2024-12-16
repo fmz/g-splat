@@ -210,7 +210,7 @@ class Scene():
         #might need to pad grads to be of shape gaussian_points?
         #print("Cond 1: " + str(torch.where(torch.norm(grads) >= threshold, True, False).size()))
         #print("Cond 2: " + str((torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense).size()))
-        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense)
+        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values <= extent[0] * percent_dense)
 
         #Generate new gaussian values
         new_points = self.points[mask]
@@ -226,7 +226,7 @@ class Scene():
 
     def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01, max_size = 20):
         prune_mask = (self.opacities < min_opacity).squeeze()
-        size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * extent[1] * percent_dense
+        size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * percent_dense
         #size_mask_2 = self.max_radii > max_size
         #final_mask = torch.logical_or(torch.logical_or(prune_mask, size_mask_1), size_mask_2)
         final_mask = torch.logical_or(prune_mask, size_mask_1)
