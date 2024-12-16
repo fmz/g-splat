@@ -128,7 +128,7 @@ def g_splat():
                     rgb = rgb.cpu().detach()
                     rgb = rgb.permute((1,2,0))
                     plt.imshow(rgb)
-                    plt.show()
+                    #plt.show()
                     plt.savefig(f"outputs/test1/{epoch + 1}.png") 
 
                 #Refinement Iteration

@@ -13,12 +13,17 @@ for dir in image_dirs:
     images.append(cv2.imread(f"test1/{dir}"))
 #images.sort()  # Ensure images are in order
 
-print(images[0].shape)
-size = images[0].shape
+height, width, layers = images[0].shape
+size = width, height
+
  
  
-out = cv2.VideoWriter('test1.avi', cv2.VideoWriter_fourcc(*'MJPG'), 1, size)
+video = cv2.VideoWriter("test1.avi", cv2.VideoWriter_fourcc(*'DIVX'), 1, (width, height))
+
  
 for i in range(len(images)):
-    out.write(images[i])
-out.release()
+    video.write(images[i])
+video.release()
+cv2.destroyAllWindows()
+
+
