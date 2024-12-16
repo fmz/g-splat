@@ -155,11 +155,11 @@ class Scene():
 
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
-        #self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
+        self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
         self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
         
         #Pruning
-        #self.prune_gaussians(extent=bbox_range)
+        self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
@@ -240,11 +240,12 @@ class Scene():
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
         self.add_to_optimizer(new_dictionary)
                 
+        print(f'Cloned {mask.sum()} gaussians')
         torch.cuda.empty_cache()
 
         
 
-    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.1, max_size = 20):
+    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.05, max_size = 20):
         prune_mask = (self.opacities < min_opacity).squeeze()
         size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * percent_dense
         #size_mask_2 = self.max_radii > max_size
@@ -252,6 +253,8 @@ class Scene():
         final_mask = torch.logical_or(prune_mask, size_mask_1)
 
         self.prune_from_optimizer(final_mask)
+        print(f'Pruned {final_mask.sum()} gaussians')
+
         torch.cuda.empty_cache()
 
 
