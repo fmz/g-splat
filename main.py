@@ -30,6 +30,9 @@ hparams = {
     'dssim_scale':0.2
 }
 
+import os
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+
 def g_splat():
     global hparams
 

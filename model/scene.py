@@ -78,6 +78,7 @@ class Scene():
         return points, opacities, scales, rots, colors
     
     def init_optimizer(self, lrs):
+        self.lrs = lrs
         # Set up a different learning rate for each parameter
         params = [{'params': [self.points], 'lr': lrs['position'], 'name':'point'},
                 {'params': [self.opacities], 'lr': lrs['opacity'], 'name':'opacity'},
@@ -101,6 +102,8 @@ class Scene():
             self.grad_denominator = torch.zeros((self.points.shape[0],1), device=self.device)
             #self.max_radii = torch.zeros((self.points.shape[0],1), device=self.device)
 
+        # Maybe necessary? (TODO: give it updated lrs)
+        self.init_optimizer(self.lrs)
 
     def add_to_optimizer(self, new_dict):
         update_dict= {}
@@ -159,14 +162,12 @@ class Scene():
         print(f"Colors mean: {self.features.mean(dim=0)}, std: {self.features.std(dim=0)}")
 
     def prune_and_densify(self,  minimum_opacity = 0.05, max_size = 100, grad_threshold = 0.0002):
-        
-
         viewspace_grads = self.viewspace_grad_accum/self.grad_denominator
 
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
         #self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
-        #self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
+        self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
 
         #Pruning
         self.prune_gaussians(extent=bbox_range)
@@ -174,7 +175,9 @@ class Scene():
         torch.cuda.empty_cache()
 
     def add_densification_data(self, viewspace_points, visible_filter):
-        self.viewspace_grad_accum[visible_filter] += torch.norm(viewspace_points.grad[visible_filter,:2], dim=-1, keepdim = True)
+        self.viewspace_grad_accum[visible_filter] += torch.norm(
+            viewspace_points.grad[visible_filter,:2], dim=-1, keepdim = True
+            )
         self.grad_denominator[visible_filter] += 1
 
 
@@ -215,16 +218,19 @@ class Scene():
         #Generate new gaussian values
         new_points = self.points[mask]
         new_opacities = self.opacities[mask]
-        new_scales = self.scales[mask]
+        new_scales = self.scales[mask] * 0.8
         new_rots = self.rots[mask]
         new_colors = self.features[mask]
-
+        
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
         self.add_to_optimizer(new_dictionary)
+                
+        torch.cuda.empty_cache()
+
         
 
 
-    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01, max_size = 20):
+    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.1, max_size = 20):
         prune_mask = (self.opacities < min_opacity).squeeze()
         size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * percent_dense
         #size_mask_2 = self.max_radii > max_size
@@ -232,6 +238,8 @@ class Scene():
         final_mask = torch.logical_or(prune_mask, size_mask_1)
 
         self.prune_from_optimizer(final_mask)
+        torch.cuda.empty_cache()
+
 
     def prune_points(self, mask):
         prune_dict = {}
