@@ -119,6 +119,8 @@ def g_splat():
     img1 = img1 / 255.0
     #############
 
+    batch_num = 0
+    rgb_batch = torch.zeros(360, 3, observer.h, observer.w).to(device)
 
     # Train
     num_epochs = hparams["num_epochs"]
@@ -157,12 +159,17 @@ def g_splat():
                 #if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
                 cam_id = ((epoch * dataset.num_images) + i) % 360
                 rgb, _, _, _= rasterizer.forward(scene, observers[cam_id])
+                rgb_batch[cam_id] = rgb
 
-                rgb = rgb.cpu().detach()
-                rgb = rgb.permute((1,2,0))
-                plt.imshow(rgb)
-                #plt.show()
-                plt.savefig(f"outputs/monkey_test/{(epoch * dataset.num_images) + i}")
+                if (cam_id == 359):
+                    rgb_batch = rgb_batch.cpu().detach()
+                    for j in range(rgb_batch.shape[0]):
+                        rgb = rgb_batch[j]
+                        rgb = rgb.permute((1,2,0))
+                        plt.imshow(rgb)
+                        #plt.show()
+                        plt.savefig(f"outputs/monkey_test/{(batch_num * 360) + j}")
+                    batch_num += 1
 
                 #Refinement Iteration
                 #scene.max_radii = torch.max(scene.max_radii, radii)
