@@ -6,7 +6,7 @@ class Camera():
     def __init__(self, out_img_size = (0,0), torch_device = torch.device("cuda")):
         self.device = torch_device
         # Output params
-        print(out_img_size)
+        #print(f'Creating a camera with resolution {out_img_size}')
         self.h = int(out_img_size[0])
         self.w = int(out_img_size[1])
 
