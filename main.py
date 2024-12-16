@@ -25,7 +25,7 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval': 5,
+    'densification_interval': 3,
     'densify_until_epoch':50,
     'dssim_scale':0.2
 }
@@ -41,18 +41,20 @@ def g_splat():
 
     #data = Dataset("data/cube")
 
-    image_txt = "data/db/drjohnson/images/images.txt"
-    camera_txt = "data/db/drjohnson/images/cameras.txt"
-    point_txt = "data/db/drjohnson/images/points3D.txt"
-    image_path = "data/db/drjohnson/images/input"
-    dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
-    #dataset = Dataset('data/cube')
-    observer = Camera(dataset.img_shape[1:])
+    # image_txt = "data/db/drjohnson/images/images.txt"
+    # camera_txt = "data/db/drjohnson/images/cameras.txt"
+    # point_txt = "data/db/drjohnson/images/points3D.txt"
+    # image_path = "data/db/drjohnson/images/input"
+    # dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
+    dataset = Dataset('data/cube')
+    #observer = Camera(dataset.img_shape[1:])
+    observer = Camera((1080,1920))
+
     observer.setup_cam(30, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
-    scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
-    #scene = Scene(bbox,init_method="random")
+    #scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
+    scene = Scene(bbox,init_method="random")
 
 
     rasterizer = GausRast()
@@ -141,7 +143,7 @@ def g_splat():
                 #scene.max_radii = torch.max(scene.max_radii, radii)
                 scene.add_densification_data(viewspace_points, visible_filter)
                 if epoch < hparams["densify_until_epoch"]:
-                    if ((epoch + 1) % hparams["densification_interval"] == 0) and i == data.num_images - 1:
+                    if ((epoch + 1) % hparams["densification_interval"] == 0) and i == dataset.num_images - 1:
                         scene.prune_and_densify()
 
                 scene.optimizer.step()
