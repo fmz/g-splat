@@ -53,7 +53,7 @@ class Scene():
 
         opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.005, 0.005, 0.005])
+        scl_mean = np.array([0.05, 0.05, 0.05])
         scl_cov  = np.array([0.01, 0.01, 0.01])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))

@@ -41,12 +41,15 @@ def g_splat():
     camera_txt = "data/db/drjohnson/images/cameras.txt"
     point_txt = "data/db/drjohnson/images/points3D.txt"
     image_path = "data/db/drjohnson/images/input"
-    data_set_colmap = Dataset_Colmap(image_txt,camera_txt,image_path)
-    observer = Camera(data_set_colmap.img_shape[1:])
-    observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -10.0], focus=[0.0, 0.0, 0.0])
+    dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
+    #dataset = Dataset('data/cube')
+    observer = Camera(dataset.img_shape[1:])
+    observer.setup_cam(30, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
 
     bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
     scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
+    #scene = Scene(bbox,init_method="random")
+
 
     rasterizer = GausRast()
 
@@ -62,13 +65,13 @@ def g_splat():
     for epoch in range(num_epochs):
         optimizer.zero_grad()
 
-        for i in range(data_set_colmap.num_images):
-            camera     = data_set_colmap.cameras[i]
-            target_img = data_set_colmap.images[i]
+        for i in range(dataset.num_images):
+            camera     = dataset.cameras[i]
+            target_img = dataset.images[i]
 
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter = rasterizer.forward(scene, camera)
-    
+
             if (i == 0) and ((epoch + 1) % 10 == 0 or epoch == 0):
                 rgb, _, _ = rasterizer.forward(scene, camera)
 

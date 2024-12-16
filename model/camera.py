@@ -101,7 +101,7 @@ class Camera():
 
         torch_proj = torch.tensor(proj_glm.to_tuple(), device=self.device, dtype=torch.float32)
 
-        self.proj = torch_proj @ self.view
+        self.proj = (torch_proj.T @ self.view.T).T
 
     def glo_map_setup_cam_from_view_and_proj(self, Rt : np.array, K : np.array, width, height):
         # Find the camera origin
@@ -133,7 +133,7 @@ class Camera():
 
         torch_proj = torch.tensor(proj_glm.to_tuple(), device=self.device, dtype=torch.float32)
 
-        self.proj = torch_proj @ self.view
+        self.proj = (torch_proj.T @ self.view.T).T
 
 
     def log_camera_info(self):
