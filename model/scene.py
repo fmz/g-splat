@@ -87,7 +87,7 @@ class Scene():
                 {'params': [self.features], 'lr': lrs['color'], 'name':'color'},
                 ]
         
-        self.optimizer = optim.Adam(params, 0.0)
+        self.optimizer = optim.Adam(params, 0.0, eps=1e-15)
 
     def update_parameters(self, update_dict, pruning = False):
         #print("Point tensor print: " + str(update_dict['point']))
@@ -102,8 +102,8 @@ class Scene():
             self.grad_denominator = torch.zeros((self.points.shape[0],1), device=self.device)
             #self.max_radii = torch.zeros((self.points.shape[0],1), device=self.device)
 
-        # Maybe necessary? (TODO: give it updated lrs)
-        self.init_optimizer(self.lrs)
+        # # Maybe necessary? (TODO: give it updated lrs)
+        # self.init_optimizer(self.lrs)
 
     def add_to_optimizer(self, new_dict):
         update_dict= {}
@@ -128,26 +128,26 @@ class Scene():
 
 
     def prune_from_optimizer(self, mask):
+        keep = ~mask
         prune_dict = {}
         for group in self.optimizer.param_groups:
             current_state = self.optimizer.state.get(group['params'][0], None)
             if current_state is not None:
-                current_state['exp_avg'] = current_state['exp_avg'][mask]
-                current_state['exp_avg_sq'] = current_state['exp_avg_sq'][mask]
+                current_state['exp_avg'] = current_state['exp_avg'][keep]
+                current_state['exp_avg_sq'] = current_state['exp_avg_sq'][keep]
 
                 del self.optimizer.state[group['params'][0]]
-                group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+                group["params"][0] = nn.Parameter(group["params"][0][keep].requires_grad_(True))
                 self.optimizer.state[group["params"][0]] = current_state
-
             else:
-                group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+                group["params"][0] = nn.Parameter(group["params"][0][keep].requires_grad_(True))
                 
             prune_dict[group['name']] = group["params"][0]
 
         self.update_parameters(prune_dict, pruning=True)
-        self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
-        self.grad_denominator = self.grad_denominator[mask]
-        #self.max_radii = self.max_radii[mask]
+        self.viewspace_grad_accum = self.viewspace_grad_accum[keep]
+        self.grad_denominator = self.grad_denominator[keep]
+        #self.max_radii = self.max_radii[keep]
     
     def regularization_loss(self):
         # TODO
@@ -166,11 +166,11 @@ class Scene():
 
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
+        #self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
         self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
-        self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
-
+        
         #Pruning
-        self.prune_gaussians(extent=bbox_range)
+        #self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
@@ -180,13 +180,13 @@ class Scene():
             )
         self.grad_denominator[visible_filter] += 1
 
-
     def split_gaussians(self, grads, threshold, extent, percent_dense = 0.01, N=2):
         #might need to pad grads to be of shape gaussian_points?
 
         #Make mask of points that need to be split
         
-        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values > extent[0] * percent_dense)
+        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), 
+                                 torch.max(self.scales, dim = 1).values > extent[0] * percent_dense)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)
@@ -198,17 +198,19 @@ class Scene():
         #Generate new gaussian values
         new_points = torch.bmm(rotation, samples.unsqueeze(-1)).squeeze(-1) + self.points[mask].repeat(N,1)
         new_opacities = self.opacities[mask].repeat(N,1)
-        new_scales = torch.log(self.scales[mask].repeat(N,1)/(0.8 * N))
+        new_scales = self.scales[mask].repeat(N,1)/(0.8 * N)
         new_rots = self.rots[mask].repeat(N,1)
         new_colors = self.features[mask].repeat(N,1,1)
 
         new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
 
         self.add_to_optimizer(new_dictionary)
-
         #Now, prune original gaussians
         prune_mask = torch.cat((mask, torch.zeros(N * mask.sum(), device="cuda", dtype=bool)))
         self.prune_from_optimizer(prune_mask)
+               
+        print(f'Split {mask.sum()} gaussians')
+
 
     def build_rotation(self, r):
         norm = torch.sqrt(r[:,0]*r[:,0] + r[:,1]*r[:,1] + r[:,2]*r[:,2] + r[:,3]*r[:,3])
