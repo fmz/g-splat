@@ -2,7 +2,7 @@ from typing import NamedTuple
 import torch
 import torch.nn as nn
 import numpy as np
-from utils.get_data_col import read_points3D_text
+from utils.get_data_col import read_points3D_text, read_dense_file
 from utils.sh_utils import RGB2SH
 import torch.optim as optim
 
@@ -35,6 +35,12 @@ class Scene():
         elif init_method == 'from-dataset':
             output,self.points, self.colors = read_points3D_text(points_txt)
             num_pts = len(output)
+            self.opacities = np.ones((num_pts, 1)) * -1.0
+            x, z, self.scales, self.rots, y = \
+                self.get_random_points(num_pts)
+        elif init_method == 'from-fused-dataset':
+            self.points, self.colors = read_dense_file(points_txt)
+            num_pts = len(self.points)
             self.opacities = np.ones((num_pts, 1)) * -1.0
             x, z, self.scales, self.rots, y = \
                 self.get_random_points(num_pts)

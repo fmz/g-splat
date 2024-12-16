@@ -22,7 +22,7 @@ class Dataset_Colmap():
         images_info = get_colmap_images_info(img_txt)
         camera_info = get_colmap_camera_info(camera_txt)
         k_matrix = build_k_matrix(camera_info)
-        extrinsic_matricies, rotation_matricies, translation_vectors,images = build_extrinsic_per_image(images_info)
+        extrinsic_matricies, rotation_matricies, translation_vectors,images = build_extrinsic_per_image(images_info,camera_info)
         self.num_images = len(images)
 
         # self.cam_K   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
