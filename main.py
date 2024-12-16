@@ -129,7 +129,7 @@ def g_splat():
                     rgb = rgb.permute((1,2,0))
                     plt.imshow(rgb)
                     plt.show()
-                    plt.savefig(f"outputs/test1/render_epoch_{epoch + 1}.png") 
+                    plt.savefig(f"outputs/test1/{epoch + 1}.png") 
 
                 #Refinement Iteration
                 #scene.max_radii = torch.max(scene.max_radii, radii)

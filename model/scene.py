@@ -187,7 +187,7 @@ class Scene():
 
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False), 
-                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 2)
+                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 1.5)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)
@@ -242,7 +242,7 @@ class Scene():
         #print("Cond 2: " + str((torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense).size()))
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False),
-                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.001)
+                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.01)
 
         #Generate new gaussian values
         new_points = self.points[mask]
