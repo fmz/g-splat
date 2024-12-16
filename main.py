@@ -179,6 +179,7 @@ def g_splat():
                         print("We are sending data)))))")
                         rgb, _, _ = rasterizer.forward(scene, observer)
                         # raw_image = (net_image.clamp(0, 1) * 255).byte().contiguous().cpu().numpy()
+                        
                         print("We are in here))))")
 
                         rgb = torch.clamp(rgb, min=0, max=1)  # Clamp values to [0, 1]
@@ -193,6 +194,8 @@ def g_splat():
 
                         # # Convert to contiguous Numpy array
                         raw_image_rgb = rgb.cpu().numpy()
+                        plt.imshow(rgb)
+                        plt.show()
 
                         # Convert to memoryview
                         net_image_bytes = memoryview(raw_image_rgb)
