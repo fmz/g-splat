@@ -13,9 +13,8 @@ for dir in image_dirs:
     images.append(cv2.imread(f"test1/{dir}"))
 #images.sort()  # Ensure images are in order
 
-frame = images[0]
-height, width, _ = frame.shape
-size = (width, height)
+print(images[0].shape)
+size = images[0].shape
  
  
 out = cv2.VideoWriter('test1.avi', cv2.VideoWriter_fourcc(*'MJPG'), 1, size)
