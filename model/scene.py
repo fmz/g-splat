@@ -155,7 +155,7 @@ class Scene():
 
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
-        #self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
+        self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
         self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
 
         #Pruning
@@ -175,28 +175,52 @@ class Scene():
 
         #Make mask of points that need to be split
         
-        mask = torch.logical_and(torch.where(grads > threshold, True, False), torch.max(self.scales, dim = 1).values > extent[0] * percent_dense)
+        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values > extent[0] * percent_dense)
 
         
-        stds = torch.e(self.scales)[mask].repeat(N,1)
-        means = torch.zeros((stds.size, 3), device=self.device)
-        samples = torch.norm(means = means, stds = stds)
+        stds = torch.exp(self.scales[mask]).repeat(N,1)
+        means = torch.zeros((stds.size(0), 3), device=self.device)
+        samples = torch.normal(mean = means, std = stds)
 
-        rotation = self.build_rotation(self.rots).repeat(N,1)
+        rotation = self.build_rotation(self.rots[mask]).repeat(N,1,1)
 
         #Generate new gaussian values
-        new_points = torch.bmm(rotation, samples) + self.points.repeat(N,1)
-        new_opacities = self.opacities.repeat(N,1)
-        new_scales = torch.log(self.scales.repeat(N,1)/(0.8 * N))
-        new_rots = self.rots.repeat(N,1)
-        new_colors = self.features.repeat(N,1,1)
-        
+        new_points = torch.bmm(rotation, samples.unsqueeze(-1)).squeeze(-1) + self.points[mask].repeat(N,1)
+        new_opacities = self.opacities[mask].repeat(N,1)
+        new_scales = torch.log(self.scales[mask].repeat(N,1)/(0.8 * N))
+        new_rots = self.rots[mask].repeat(N,1)
+        new_colors = self.features[mask].repeat(N,1,1)
+
+        new_dictionary = {'point': new_points, 'opacity': new_opacities, 'scale': new_scales, 'rotation': new_rots, 'color': new_colors}
+
+        self.add_to_optimizer(new_dictionary)
 
         #Now, prune original gaussians
-        self.prune_gaussians(mask, extent)
+        prune_mask = torch.cat((mask, torch.zeros(N * mask.sum(), device="cuda", dtype=bool)))
+        self.prune_from_optimizer(prune_mask)
 
-    def build_rotation(self, rots):
-        pass
+    def build_rotation(self, r):
+        norm = torch.sqrt(r[:,0]*r[:,0] + r[:,1]*r[:,1] + r[:,2]*r[:,2] + r[:,3]*r[:,3])
+
+        q = r / norm[:, None]
+
+        R = torch.zeros((q.size(0), 3, 3), device='cuda')
+
+        r = q[:, 0]
+        x = q[:, 1]
+        y = q[:, 2]
+        z = q[:, 3]
+
+        R[:, 0, 0] = 1 - 2 * (y*y + z*z)
+        R[:, 0, 1] = 2 * (x*y - r*z)
+        R[:, 0, 2] = 2 * (x*z + r*y)
+        R[:, 1, 0] = 2 * (x*y + r*z)
+        R[:, 1, 1] = 1 - 2 * (x*x + z*z)
+        R[:, 1, 2] = 2 * (y*z - r*x)
+        R[:, 2, 0] = 2 * (x*z - r*y)
+        R[:, 2, 1] = 2 * (y*z + r*x)
+        R[:, 2, 2] = 1 - 2 * (x*x + y*y)
+        return R
 
     def clone_gaussians(self, grads, threshold, extent, percent_dense = 0.01, N=2):
         #might need to pad grads to be of shape gaussian_points?
@@ -217,7 +241,6 @@ class Scene():
         torch.cuda.empty_cache()
 
         
-
 
     def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.1, max_size = 20):
         prune_mask = (self.opacities < min_opacity).squeeze()
