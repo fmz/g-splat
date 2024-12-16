@@ -25,7 +25,7 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval': 2,
+    'densification_interval': 5,
     'densify_until_epoch':50,
     'dssim_scale':0.2
 }
