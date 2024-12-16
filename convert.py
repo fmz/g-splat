@@ -10,23 +10,23 @@ from PIL import Image
 colmap_command = "colmap"
 glomap_command = "glomap"
 
-# def resize():
-#     print("Resizing")
-#     images_path = args.source_path + "/input"
-#     print(f"{images_path=}")
-#     img_dir = os.listdir(images_path)
-#     print(f"images = {len(img_dir)}")
-#     i = 0
-#     for img_name in img_dir: 
-#         print(f"{img_name=}")
-#         image = Image.open(images_path+"/"+img_name)
-#         image = image.resize((1280,720))
-#         image.save(images_path+"/"+img_name)
-#         i +=1
-#         print(image)
-#     print(f"image count = {i}")
-#     print("Done Resizing")
-#     return
+def resize():
+    print("Resizing")
+    images_path = args.source_path + "/input"
+    print(f"{images_path=}")
+    img_dir = os.listdir(images_path)
+    print(f"images = {len(img_dir)}")
+    i = 0
+    for img_name in img_dir: 
+        print(f"{img_name=}")
+        image = Image.open(images_path+"/"+img_name)
+        image = image.resize((1280,720))
+        image.save(images_path+"/"+img_name)
+        i +=1
+        print(image)
+    print(f"image count = {i}")
+    print("Done Resizing")
+    return
 
 def extract_features(database_path):
     feat_extracton_cmd = colmap_command + " feature_extractor --database_path " + database_path +  " --image_path " + args.source_path + "/input --ImageReader.single_camera 1 \
@@ -77,8 +77,8 @@ def meshed():
     exit_code = os.system(meshed_cmd)
 
 def main():
-    #print("Resize")
-    # resize()
+    print("Resize")
+    resize()
     parent_dir = os.path.abspath(os.path.join(args.source_path, os.pardir))
     distorted_folder = os.path.join(parent_dir, 'distorted/distorted-classroom')
     database_path = os.path.join(distorted_folder, 'database.db')
@@ -94,9 +94,8 @@ def main():
     print("Dense Stereo")
     dense_stero()
     print("Dense Fusion")
-    #dense_fusion()
-    #print("Converting file types")
-    #binary_to_text()
+    dense_fusion()
+    print("Converting file types")
     print("Possion")
     possion()
     print("Mesh")

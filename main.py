@@ -42,22 +42,22 @@ def g_splat():
 
     #data = Dataset("data/cube")
 
-    image_txt = "data/dense-classroom/dense/sparse/images.txt"
-    camera_txt = "data/dense-classroom/dense/sparse/cameras.txt"
-    point_txt = "data/dense-classroom/dense/fused.ply"
-    image_path = "data/dense-classroom/dense/images"
+    image_txt = "data/wt_export/sparse/0/images.txt"
+    camera_txt = "data/wt_export/sparse/0/cameras.txt"
+    point_txt = "data/wt_export/sparse/0/points3D.txt"
+    image_path = "data/wt_export/input"
     dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
     #dataset = Dataset('data/monkey')
     #observer = Camera(dataset.img_shape[1:])
-    observer = Camera((480,720))
+    observer = Camera((720,1280))
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 5.0], focus=[0.0, 0.0, 0.0])
 
-    observer2 = Camera((480,720))
+    observer2 = Camera((720,1280))
     observer2.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -5.0], focus=[0.0, 0.0, 0.0])
 
 
     bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
-    scene = Scene(bbox,init_method="from-fused-dataset",points_txt=point_txt)
+    scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
     #scene = Scene(bbox,init_method="random")
 
 
