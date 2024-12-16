@@ -2,9 +2,9 @@ from typing import NamedTuple
 import torch
 import torch.nn as nn
 import numpy as np
-from utils.get_data_col import read_points3D_text
 from utils.sh_utils import RGB2SH
 import torch.optim as optim
+
 
 class BoundingBox(NamedTuple):
     lo: np.array
@@ -16,28 +16,23 @@ class Scene():
                  bbox : BoundingBox,
                  torch_device = torch.device('cuda'),
                  init_method="random",
-                 points_txt = 'none',
                  max_sh_degree=4):
         self.device = torch_device
         self.bbox   = bbox
 
         self.max_sh_degree = max_sh_degree
         self.percent_dense = 0.01
-        self.grad_threshold = 0.0001
-        self.min_opacity = 0.001
+        self.grad_threshold = 0.0002
+        self.min_opacity = 0.005
         self.split_factor = int(2)
         self.split_scale_factor = 0.8
         self.log_split_scale_factor_times_split_factor = np.log(self.split_factor * self.split_scale_factor)
 
         if init_method == "random":
             self.points, self.opacities, self.scales, self.rots, self.colors = \
-                self.get_random_points(self.get_num_points_for_bbox(density=0.5))
+                self.get_random_points(density=1)
         elif init_method == 'from-dataset':
-            output,self.points, self.colors = read_points3D_text(points_txt)
-            num_pts = len(output)
-            self.opacities = np.ones((num_pts, 1)) * -1.0
-            x, z, self.scales, self.rots, y = \
-                self.get_random_points(num_pts)
+            pass
 
         self.points    = nn.Parameter(torch.tensor(self.points, device=self.device, dtype=torch.float32, requires_grad=True))
         self.opacities = nn.Parameter(torch.tensor(self.opacities, device=self.device, dtype=torch.float32, requires_grad=True))
@@ -55,25 +50,20 @@ class Scene():
         #self.max_radii = torch.zeros((self.points.shape[0],1), device=self.device)
 
     # Density is points per unit area
-    def get_num_points_for_bbox(self, density=1):
+    def get_random_points(self, density=1, seed=None):
         bbox_range = self.bbox.hi - self.bbox.lo
         num_pts = np.round(bbox_range * density).astype('int')
         num_pts = np.prod(num_pts)
 
-        return num_pts
-
-    def get_random_points(self, num_pts, seed=None):
         rng = np.random.default_rng(seed)
 
-        bbox_range = self.bbox.hi - self.bbox.lo
-        
         points = rng.uniform(0.0, 1.0, (num_pts, 3))
         points = points * bbox_range + self.bbox.lo
 
-        opacities = rng.uniform(-1.0, 1.0, (num_pts, 1))
+        opacities = rng.uniform(0.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.05, 0.05, 0.05])
-        scl_cov  = np.array([0.01, 0.01, 0.01])
+        scl_mean = np.array([0.01, 0.01, 0.01])
+        scl_cov  = np.array([0.1, 0.1, 0.1])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))
 
@@ -178,7 +168,7 @@ class Scene():
         self.split_gaussians(grad_avg, extent=bbox_range)
         
         #Pruning
-        self.prune_gaussians(extent=bbox_range)
+        #self.prune_gaussians(extent=bbox_range)
         
         torch.cuda.empty_cache()
 
@@ -197,7 +187,7 @@ class Scene():
 
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False), 
-                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 2)
+                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 1.5)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)
@@ -270,7 +260,7 @@ class Scene():
         
 
     def prune_gaussians(self, extent, max_size = 20):
-        prune_mask = (torch.sigmoid(self.opacities) < self.min_opacity).squeeze()
+        prune_mask = (self.opacities < self.min_opacity).squeeze()
         #size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * self.percent_dense
         #size_mask_2 = self.max_radii > max_size
         #final_mask = torch.logical_or(torch.logical_or(prune_mask, size_mask_1), size_mask_2)
@@ -283,15 +273,4 @@ class Scene():
         torch.cuda.empty_cache()
 
 
-    def prune_points(self, mask):
-        prune_dict = {}
-        for group in self.optimizer.param_groups:
-            group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
-            prune_dict[group['name']] = group["params"][0]
-
-        self.update_parameters(prune_dict, pruning=True)
-        self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
-        self.grad_denominator = self.grad_denominator[mask]
-
-    def reset_opacities(self):
-        opacities = torch.min(self.opacities, torch.tensor([-7.0], device=self.device, dtype=torch.float32))
+    

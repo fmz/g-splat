@@ -48,12 +48,22 @@ def g_splat():
     # image_path = "data/db/drjohnson/images/input"
     # dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
     dataset = Dataset('data/monkey')
-    #observer = Camera(dataset.img_shape[1:])
-    observer = Camera((1080,1920))
-    observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 5.0], focus=[0.0, 0.0, 0.0])
 
-    observer2 = Camera((1080,1920))
-    observer2.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -5.0], focus=[0.0, 0.0, 0.0])
+    observers = []
+
+    for i in range (0, 360):
+        radius = 5.0
+        observer = Camera(dataset.img_shape[1:])
+        observer = Camera((720,1280))
+        x = radius * np.cos(np.deg2rad(i))
+        z = radius * np.sin(np.deg2rad(i))
+        observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[x, 0.0, z], focus=[0.0, 0.0, 0.0])
+        observers.append(observer)
+     
+
+
+    #observer2 = Camera((1080,1920))
+    #observer2.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -5.0], focus=[0.0, 0.0, 0.0])
 
 
     bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
@@ -144,20 +154,15 @@ def g_splat():
 
             with torch.no_grad():
                 # Viz
-                if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
-                    rgb, _, _, _= rasterizer.forward(scene, observer)
+                #if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
+                cam_id = ((epoch * dataset.num_images) + i) % 360
+                rgb, _, _, _= rasterizer.forward(scene, observers[cam_id])
 
-                    rgb = rgb.cpu().detach()
-                    rgb = rgb.permute((1,2,0))
-                    plt.imshow(rgb)
-                    plt.show()
-
-                    rgb, _, _, _= rasterizer.forward(scene, observer2)
-
-                    rgb = rgb.cpu().detach()
-                    rgb = rgb.permute((1,2,0))
-                    plt.imshow(rgb)
-                    plt.show()
+                rgb = rgb.cpu().detach()
+                rgb = rgb.permute((1,2,0))
+                plt.imshow(rgb)
+                #plt.show()
+                plt.savefig(f"outputs/monkey_test/{(epoch * dataset.num_images) + i}")
 
                 #Refinement Iteration
                 #scene.max_radii = torch.max(scene.max_radii, radii)
