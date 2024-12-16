@@ -22,7 +22,7 @@ class Scene():
         self.bbox   = bbox
 
         self.max_sh_degree = max_sh_degree
-        self.percent_dense = 0.01
+        self.percent_dense = 0.001
         self.grad_threshold = 0.0001
         self.min_opacity = 0.001
         self.split_factor = int(2)
@@ -72,8 +72,8 @@ class Scene():
 
         opacities = rng.uniform(-1.0, 1.0, (num_pts, 1))
 
-        scl_mean = np.array([0.05, 0.05, 0.05])
-        scl_cov  = np.array([0.01, 0.01, 0.01])
+        scl_mean = np.array([0.1, 0.1, 0.1])
+        scl_cov  = np.array([0.1, 0.1, 0.1])
         
         scales = rng.normal(scl_mean, scl_cov, size=(num_pts, 3))
 
@@ -197,7 +197,7 @@ class Scene():
 
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False), 
-                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 2)
+                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 50)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)

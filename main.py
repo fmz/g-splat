@@ -25,7 +25,7 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval': 1,
+    'densification_interval': 2,
     'opacity_reset_interval': 30,
     'densify_until_epoch':50,
     'dssim_scale':0.2
@@ -42,12 +42,12 @@ def g_splat():
 
     #data = Dataset("data/cube")
 
-    # image_txt = "data/db/drjohnson/images/images.txt"
-    # camera_txt = "data/db/drjohnson/images/cameras.txt"
-    # point_txt = "data/db/drjohnson/images/points3D.txt"
-    # image_path = "data/db/drjohnson/images/input"
-    # dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
-    dataset = Dataset('data/monkey')
+    image_txt = "data/db/drjohnson/images/images.txt"
+    camera_txt = "data/db/drjohnson/images/cameras.txt"
+    point_txt = "data/db/drjohnson/images/points3D.txt"
+    image_path = "data/db/drjohnson/images/input"
+    dataset = Dataset_Colmap(image_txt,camera_txt,image_path)
+    # dataset = Dataset('data/monkey')
     #observer = Camera(dataset.img_shape[1:])
     observer = Camera((1080,1920))
     observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 5.0], focus=[0.0, 0.0, 0.0])
@@ -57,8 +57,8 @@ def g_splat():
 
 
     bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
-    #scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
-    scene = Scene(bbox,init_method="random")
+    scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
+    #scene = Scene(bbox,init_method="random")
 
 
     rasterizer = GausRast()
