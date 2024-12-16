@@ -12,6 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import randint
 
+from PIL import Image
+
+
 learning_rates = {
     'opacity': 0.05,
     'scale': 0.005,
@@ -162,13 +165,16 @@ def g_splat():
                 rgb_batch[cam_id] = rgb
 
                 if (cam_id == 359):
-                    rgb_batch = rgb_batch.cpu().detach()
-                    for j in range(rgb_batch.shape[0]):
-                        rgb = rgb_batch[j]
-                        rgb = rgb.permute((1,2,0))
-                        plt.imshow(rgb)
+                    numpy_batch = rgb_batch.cpu().detach().permute((0,2,3,1)).numpy()
+                    for j in range(numpy_batch.shape[0]):
+                        rgb = numpy_batch[j]
+                        # plt.imshow(rgb)
                         #plt.show()
-                        plt.savefig(f"outputs/monkey_test/{(batch_num * 360) + j}")
+                        #plt.savefig(f"outputs/monkey_test/{(batch_num * 360) + j}")
+                        im = Image.fromarray((rgb * 255).astype(np.uint8))
+                        im.save(f"outputs/monkey_test/{(batch_num * 360) + j}.png")
+
+                    rgb_batch = rgb_batch.to(device)
                     batch_num += 1
 
                 #Refinement Iteration

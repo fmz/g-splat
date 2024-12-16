@@ -123,6 +123,21 @@ class Scene():
 
         self.update_parameters(update_dict)
 
+    def swap_optimizer_tensor(self, swap_dict : dict):
+        prune_dict = {}
+        for group in self.optimizer.param_groups:
+            grp_name = group['name']
+            if grp_name in swap_dict:
+                current_state = self.optimizer.state.get(group['params'][0], None)
+                current_state['exp_avg'] = torch.zeros_like(swap_dict[grp_name])
+                current_state['exp_avg_sq'] = torch.zeros_like(swap_dict[grp_name])
+
+                del self.optimizer.state[group['params'][0]]
+                group["params"][0] = nn.Parameter(swap_dict[grp_name].requires_grad_(True))
+                self.optimizer.state[group["params"][0]] = current_state
+                swap_dict[grp_name] = group['params'][0]
+
+        return swap_dict
 
     def prune_from_optimizer(self, mask):
         keep = ~mask
@@ -273,4 +288,20 @@ class Scene():
         torch.cuda.empty_cache()
 
 
-    
+    def prune_points(self, mask):
+        prune_dict = {}
+        for group in self.optimizer.param_groups:
+            group["params"][0] = nn.Parameter(group["params"][0][mask].requires_grad_(True))
+            prune_dict[group['name']] = group["params"][0]
+
+        self.update_parameters(prune_dict, pruning=True)
+        self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
+        self.grad_denominator = self.grad_denominator[mask]
+
+    def reset_opacities(self):
+        return
+        opacities = torch.min(self.opacities, torch.tensor([-7.0], device=self.device, dtype=torch.float32))
+        swap_dict = {'opacity': opacities}
+
+        swap_dict = self.swap_optimizer_tensor(swap_dict)
+        self.opacities = swap_dict['opacity']
