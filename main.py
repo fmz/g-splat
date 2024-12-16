@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
+from random import randint
 
 learning_rates = {
     'opacity': 0.05,
@@ -23,8 +24,8 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval':5,
-    'densify_until_iteration':80,
+    'densification_interval': 2,
+    'densify_until_epoch':50,
     'dssim_scale':0.2
 }
 
@@ -102,7 +103,7 @@ def g_splat():
             # Rasterize the scene given a camera
             img_out, viewspace_points, visible_filter, radii = rasterizer.forward(scene, observer)
 
-            if (i == 0) and ((epoch + 1) % 25 == 0 or epoch == 0):
+            if (i == 0) and ((epoch + 1) % 5 == 0 or epoch == 0):
                 rgb, _, _, _= rasterizer.forward(scene, observer)
 
                 rgb = rgb.cpu().detach()
@@ -126,13 +127,13 @@ def g_splat():
             #Refinement Iteration
             #scene.max_radii = torch.max(scene.max_radii, radii)
             scene.add_densification_data(viewspace_points, visible_filter)
-            if epoch < hparams["densify_until_iteration"]:
-                if (epoch + 1) % hparams["densification_interval"] == 0:
+            if epoch < hparams["densify_until_epoch"]:
+                if ((epoch + 1) % hparams["densification_interval"] == 0) and i == data.num_images - 1:
                     scene.prune_and_densify()
 
 
             # Logging
-            if (i==0) and ((epoch + 1) % 10 == 0 or epoch == 0):
+            if (i==0) and ((epoch + 1) % 1 == 0 or epoch == 0):
                 print(f"Epoch {epoch + 1}/{num_epochs}, L1 Loss: {l1_loss.item():.4f}, SSIM Loss: {ssim_loss.item():.4f} Total Loss: {total_loss.item():.4f}, Num Gaussians: {scene.optimizer.param_groups[0]['params'][0].shape}")
 
             # Optional: Save intermediate rendered images for debugging
