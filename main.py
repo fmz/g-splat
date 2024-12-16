@@ -25,7 +25,8 @@ hparams = {
     'lrs': learning_rates,
     'num_epochs': 100,
     'regularization_weight': 0.01,
-    'densification_interval': 3,
+    'densification_interval': 1,
+    'opacity_reset_interval': 30,
     'densify_until_epoch':50,
     'dssim_scale':0.2
 }
@@ -49,10 +50,13 @@ def g_splat():
     dataset = Dataset('data/cube')
     #observer = Camera(dataset.img_shape[1:])
     observer = Camera((1080,1920))
+    observer.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 5.0], focus=[0.0, 0.0, 0.0])
 
-    observer.setup_cam(30, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, 10.0], focus=[0.0, 0.0, 0.0])
+    observer2 = Camera((1080,1920))
+    observer2.setup_cam(60, up=[0.0, 1.0, 0.0], pos=[0.0, 0.0, -5.0], focus=[0.0, 0.0, 0.0])
 
-    bbox  = BoundingBox(lo=np.array([-5.0, -5.0, -5.0]), hi=np.array([5.0, 5.0, 5.0]))
+
+    bbox  = BoundingBox(lo=np.array([-2.0, -2.0, -2.0]), hi=np.array([2.0, 2.0, 2.0]))
     #scene = Scene(bbox,init_method="from-dataset",points_txt=point_txt)
     scene = Scene(bbox,init_method="random")
 
@@ -116,12 +120,21 @@ def g_splat():
             target_img = dataset.images[i]
 
             # Rasterize the scene given a camera
-            img_out, viewspace_points, visible_filter, radii = rasterizer.forward(scene, observer)
+            img_out, viewspace_points, visible_filter, radii = rasterizer.forward(scene, camera)
+
+            # rgb = img_out.cpu().detach()
+            # rgb = rgb.permute((1,2,0))
+            # plt.imshow(rgb)
+            # plt.show()
+            # rgb = target_img.cpu().detach()
+            # rgb = rgb.permute((1,2,0))
+            # plt.imshow(rgb)
+            # plt.show()
 
             # Compute loss (rendering loss + dssim)
-            ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), img1.unsqueeze(0))
+            ssim_loss  = 1.0 - fused_ssim(img_out.unsqueeze(0), target_img.unsqueeze(0))
 
-            l1_loss = loss_fn(img_out, img1)
+            l1_loss = loss_fn(img_out, target_img)
 
             # Improved regularization loss
             #reg_loss = scene.regularization_loss() * hparams['regularization_weight']
@@ -139,12 +152,22 @@ def g_splat():
                     plt.imshow(rgb)
                     plt.show()
 
+                    rgb, _, _, _= rasterizer.forward(scene, observer2)
+
+                    rgb = rgb.cpu().detach()
+                    rgb = rgb.permute((1,2,0))
+                    plt.imshow(rgb)
+                    plt.show()
+
                 #Refinement Iteration
                 #scene.max_radii = torch.max(scene.max_radii, radii)
                 scene.add_densification_data(viewspace_points, visible_filter)
                 if epoch < hparams["densify_until_epoch"]:
                     if ((epoch + 1) % hparams["densification_interval"] == 0) and i == dataset.num_images - 1:
                         scene.prune_and_densify()
+                    
+                if ((epoch + 1) % hparams["opacity_reset_interval"] == 0) and i == dataset.num_images - 1:
+                    scene.reset_opacities()
 
                 scene.optimizer.step()
                 scene.optimizer.zero_grad(set_to_none=True)
