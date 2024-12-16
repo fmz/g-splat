@@ -1,5 +1,8 @@
+import pycolmap
 import numpy as np
 from argparse import ArgumentParser
+import json
+from plyfile import PlyData
 
 def get_colmap_camera_info(file_path):
     camera_info = {}
@@ -74,16 +77,15 @@ def build_k_matrix(camera_info):
     return k
 
 
-def build_extrinsic_per_image(images_info):
+def build_extrinsic_per_image(images_info,camera_info):
     translation_vectors = []
     rotation_matricies = []
     extrinsic_matricies = []
     images = []
-    for i, image_info in enumerate(images_info):
-        # Hack to make data fit on gpu
-        if i % 2:
-            continue
+    camera_json_info = []
+    expose_info = {}
 
+    for image_info in images_info:
         image_info = images_info[image_info]
         image_id = image_info['image_id']
         
@@ -111,11 +113,33 @@ def build_extrinsic_per_image(images_info):
             ],
         ])
         extrinsic_matrix = np.hstack((rotation_matrix,translation_vector))
+        focal = camera_info["params"][0]
+        camera_json_info.append({
+            "id:" : image_id,
+            "image_name": image_info['image_name'],
+            "width": camera_info["width"],
+            "height": camera_info["height"],
+            "position": np.array(rotation_matrix.T @ translation_vector).tolist(),
+            "rotation": rotation_matrix.tolist(),
+            "fy": focal,
+            "fx": focal
+        })
 
+        expose_info[image_info['image_name']] = [[1.0,0.0,0.0], [0.0, 1.0 , 0.0], [0.0, 0.0, 1.0]]
         translation_vectors.append(translation_vector)
         rotation_matricies.append(rotation_matrix)
         extrinsic_matricies.append(extrinsic_matrix)
         images.append(image_info['image_name'])
+
+
+        # c_filename = "utils/outputs/camera.json"
+        # # Open the file in write mode ('w')
+        # with open(c_filename, 'w') as f:
+        #     json.dump(camera_json_info, f) 
+        # e_filename = "utils/outputs/exposure.json"
+
+        # with open(e_filename, 'w') as f:
+        #     json.dump(expose_info,f)
 
     
     return extrinsic_matricies, rotation_matricies, translation_vectors, images
@@ -139,7 +163,7 @@ def read_points3D_text(path):
                 point3D_id = int(elems[0])
                 xyz = np.array(tuple(map(float, elems[1:4])))
                 points3d_coord.append(xyz)
-                rgb = np.array(tuple(map(int, elems[4:7])), dtype='float') / 255.0
+                rgb = np.array(tuple(map(int, elems[4:7])))
                 points3d_rgb.append(rgb)
                 error = float(elems[7])
                 image_ids = np.array(tuple(map(int, elems[8::2])))
@@ -152,8 +176,38 @@ def read_points3D_text(path):
                         'image_ids' :image_ids,
                         'point2D_idxs' : point2D_idxs,
                 }
+    num_points = len(points3d_coord)
+    ply_file = "utils/points.ply"
+
+    with open(ply_file, "w") as ply:
+        ply.write("ply\n")
+        ply.write("format ascii 1.0\n")
+        ply.write(f"element vertex {num_points}\n")
+        ply.write("property float x\n")
+        ply.write("property float y\n")
+        ply.write("property float z\n")
+        ply.write("property uchar red\n")
+        ply.write("property uchar green\n")
+        ply.write("property uchar blue\n")
+        ply.write("end_header\n")
+
+        for p, c in zip(points3d_coord, points3d_rgb):
+            ply.write(f"{p[0]} {p[1]} {p[2]} {c[0]} {c[1]} {c[2]}\n")
+            
     return points3D_output, points3d_coord, points3d_rgb
 
+def read_dense_file(dense_path):
+    
+    #PLY Reader from 
+    #https://github.com/graphdeco-inria/gaussian-splatting/blob/54c035f7834b564019656c3e3fcc3646292f727d/scene/dataset_readers.py#L128
+    
+    plydata = PlyData.read(dense_path)
+    vertices = plydata['vertex']
+    points_3d = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
+    colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
+    normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
+
+    return points_3d, colors
         
 
 def main():
@@ -164,9 +218,11 @@ def main():
     print("Getting Image Information")
     images_info = get_colmap_images_info(args.image_path)
     print("Building Extrinsic Matricies")
-    matricies_nd_vectors = build_extrinsic_per_image(images_info)
+    matricies_nd_vectors = build_extrinsic_per_image(images_info,camera_info)
     print("Gathering Point Clouds")
     points3d = read_points3D_text(args.points_path)
+    if args.dense_path:
+        read_dense_file(args.dense_path)
     
 
 if __name__=="__main__":
@@ -174,5 +230,6 @@ if __name__=="__main__":
     parser.add_argument("--image_path", "-i", required=True, type=str)
     parser.add_argument("--camera_path", "-c", required=True, type=str)
     parser.add_argument("--points_path", "-p", required=True, type=str)
+    parser.add_argument("--dense_path", "-d", required=False, type=str)
     args =  parser.parse_args()
     main()
