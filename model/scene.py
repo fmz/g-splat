@@ -39,6 +39,7 @@ class Scene():
 
         self.viewspace_grad_accum = torch.zeros((self.points.shape[0],1), device=self.device)
         self.grad_denominator = torch.zeros((self.points.shape[0],1), device=self.device)
+        #self.max_radii = torch.zeros((self.points.shape[0],1), device=self.device)
 
     # Density is points per unit area
     def get_random_points(self, density=1, seed=None):
@@ -87,6 +88,7 @@ class Scene():
         if not pruning:
             self.viewspace_grad_accum = torch.zeros((self.points.shape[0],1), device=self.device)
             self.grad_denominator = torch.zeros((self.points.shape[0],1), device=self.device)
+            #self.max_radii = torch.zeros((self.points.shape[0],1), device=self.device)
 
 
     def add_to_optimizer(self, new_dict):
@@ -131,6 +133,7 @@ class Scene():
         self.update_parameters(prune_dict, pruning=True)
         self.viewspace_grad_accum = self.viewspace_grad_accum[mask]
         self.grad_denominator = self.grad_denominator[mask]
+        #self.max_radii = self.max_radii[mask]
     
     def regularization_loss(self):
         # TODO
@@ -152,7 +155,7 @@ class Scene():
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
         #self.split_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
-        self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
+        #self.clone_gaussians(viewspace_grads, grad_threshold, extent=bbox_range)
 
         #Pruning
         self.prune_gaussians(extent=bbox_range)
@@ -194,7 +197,9 @@ class Scene():
 
     def clone_gaussians(self, grads, threshold, extent, percent_dense = 0.01, N=2):
         #might need to pad grads to be of shape gaussian_points?
-        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values <= extent[0] * percent_dense)
+        #print("Cond 1: " + str(torch.where(torch.norm(grads) >= threshold, True, False).size()))
+        #print("Cond 2: " + str((torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense).size()))
+        mask = torch.logical_and(torch.where(torch.norm(grads) >= threshold, True, False), torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense)
 
         #Generate new gaussian values
         new_points = self.points[mask]
@@ -208,10 +213,12 @@ class Scene():
         
 
 
-    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01): #, max_radiis, max_size):
+    def prune_gaussians(self, extent, min_opacity = 0.05, percent_dense = 0.01, max_size = 20):
         prune_mask = (self.opacities < min_opacity).squeeze()
-        size_mask =  torch.max(self.scales, dim = 1).values > extent[0] * percent_dense
-        final_mask = torch.logical_or(prune_mask, size_mask)
+        size_mask_1 =  torch.max(self.scales, dim = 1).values > extent[0] * extent[1] * percent_dense
+        #size_mask_2 = self.max_radii > max_size
+        #final_mask = torch.logical_or(torch.logical_or(prune_mask, size_mask_1), size_mask_2)
+        final_mask = torch.logical_or(prune_mask, size_mask_1)
 
         self.prune_from_optimizer(final_mask)
 

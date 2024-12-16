@@ -100,10 +100,10 @@ def g_splat():
             target_img = data.images[i]
 
             # Rasterize the scene given a camera
-            img_out, viewspace_points, visible_filter = rasterizer.forward(scene, observer)
+            img_out, viewspace_points, visible_filter, radii = rasterizer.forward(scene, observer)
 
             if (i == 0) and ((epoch + 1) % 25 == 0 or epoch == 0):
-                rgb, _, _ = rasterizer.forward(scene, observer)
+                rgb, _, _, _= rasterizer.forward(scene, observer)
 
                 rgb = rgb.cpu().detach()
                 rgb = rgb.permute((1,2,0))
@@ -124,7 +124,8 @@ def g_splat():
             scene.optimizer.step()
 
             #Refinement Iteration
-            #scene.add_densification_data(viewspace_points, visible_filter)
+            #scene.max_radii = torch.max(scene.max_radii, radii)
+            scene.add_densification_data(viewspace_points, visible_filter)
             if epoch < hparams["densify_until_iteration"]:
                 if (epoch + 1) % hparams["densification_interval"] == 0:
                     scene.prune_and_densify()
