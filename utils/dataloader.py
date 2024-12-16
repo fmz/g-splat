@@ -50,7 +50,7 @@ class Dataset():
 
             for i, line in enumerate(lines[1:]):
                 args = line.split()
-                img_path = os.path.join(self.data_dir, 'input', args[0])
+                img_path = os.path.join(self.data_dir, args[0])
                 image = Image.open(img_path)
                 # The current dataset has images that have alpha in them
                 image = np.array(image, dtype='float32')
