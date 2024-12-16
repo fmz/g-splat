@@ -163,7 +163,7 @@ def read_points3D_text(path):
                 point3D_id = int(elems[0])
                 xyz = np.array(tuple(map(float, elems[1:4])))
                 points3d_coord.append(xyz)
-                rgb = np.array(tuple(map(int, elems[4:7])))
+                rgb = np.array(tuple(map(int, elems[4:7])))/255
                 points3d_rgb.append(rgb)
                 error = float(elems[7])
                 image_ids = np.array(tuple(map(int, elems[8::2])))
@@ -177,23 +177,7 @@ def read_points3D_text(path):
                         'point2D_idxs' : point2D_idxs,
                 }
     num_points = len(points3d_coord)
-    ply_file = "utils/points.ply"
-
-    with open(ply_file, "w") as ply:
-        ply.write("ply\n")
-        ply.write("format ascii 1.0\n")
-        ply.write(f"element vertex {num_points}\n")
-        ply.write("property float x\n")
-        ply.write("property float y\n")
-        ply.write("property float z\n")
-        ply.write("property uchar red\n")
-        ply.write("property uchar green\n")
-        ply.write("property uchar blue\n")
-        ply.write("end_header\n")
-
-        for p, c in zip(points3d_coord, points3d_rgb):
-            ply.write(f"{p[0]} {p[1]} {p[2]} {c[0]} {c[1]} {c[2]}\n")
-            
+    
     return points3D_output, points3d_coord, points3d_rgb
 
 def read_dense_file(dense_path):
