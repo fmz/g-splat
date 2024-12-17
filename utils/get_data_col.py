@@ -1,4 +1,3 @@
-import pycolmap
 import numpy as np
 from argparse import ArgumentParser
 import json

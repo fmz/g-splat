@@ -2,21 +2,10 @@ from PIL import Image
 import numpy as np
 import torch
 
-import os
-import glob
-
 from model.camera import Camera
 from utils.get_data_col import get_colmap_camera_info,get_colmap_images_info,build_k_matrix,build_extrinsic_per_image
 
 class Dataset_Colmap():
-    # The dataset format is detailed in https://vision.middlebury.edu/mview/data/
-    # The most important part is:
-
-    # name_par.txt: camera parameters. There is one line for each image.
-    # The format for each line is:
-    # "imgname.png k11 k12 k13 k21 k22 k23 k31 k32 k33 r11 r12 r13 r21 r22 r23 r31 r32 r33 t1 t2 t3".
-    # The projection matrix for that image is K*[R t]. The image origin is top-left, with x increasing horizontally, y vertically.
-
     def __init__(self, img_txt,camera_txt,image_path,  torch_device=torch.device('cuda')):
         self.device = torch_device
         images_info = get_colmap_images_info(img_txt)
@@ -25,11 +14,6 @@ class Dataset_Colmap():
         extrinsic_matricies, rotation_matricies, translation_vectors,images = build_extrinsic_per_image(images_info,camera_info)
         self.num_images = len(images)
 
-        # self.cam_K   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
-        # self.cam_R   = torch.zeros((self.num_images, 3, 3), device=self.device, dtype=torch.float32)
-        # self.cam_t   = torch.zeros((self.num_images, 3, 1), device=self.device, dtype=torch.float32)
-        # self.cam_mat = torch.zeros((self.num_images, 3, 4), device=self.device, dtype=torch.float32)
-        # self.cam_pos = torch.zeros((self.num_images, 3), device=self.device, dtype=torch.float32)
         self.images = []
         
         self.cam_R = torch.tensor(rotation_matricies, device = self.device , dtype=torch.float32)
@@ -46,7 +30,7 @@ class Dataset_Colmap():
             image = image[:,:,:3]
             image /= 255.0
             # Convert to CHW
-            image = np.permute_dims(image, (2,0,1))
+            image = np.transpose(image, (2,0,1))
             image = torch.tensor(image, device=self.device, dtype=torch.float32)
             self.images.append(image)
             

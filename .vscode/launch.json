@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": [
+            "args": ["--mode", "blender", "--data", "data/monkey", "--viz_interval", "5"
             ]
         }
     ]
