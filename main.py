@@ -65,6 +65,9 @@ def g_splat(args):
         scene = Scene(bbox,init_method="random")
 
         hparams['num_epochs'] *= 10
+        hparams['densification_interval'] *= 10
+        hparams['opacity_reset_interval'] *= 10
+        hparams['densify_until_epoch'] *= 10
     else:
         raise RuntimeError(f"Unknown mode {args.mode}")
 
