@@ -180,8 +180,9 @@ class Scene():
 
         bbox_range = self.bbox.hi - self.bbox.lo
         #Densification
-        self.clone_gaussians(grad_avg, extent=bbox_range)
-        self.split_gaussians(grad_avg, extent=bbox_range)
+        if self.points.shape[0] < 2_000_000:
+            self.clone_gaussians(grad_avg, extent=bbox_range)
+            self.split_gaussians(grad_avg, extent=bbox_range)
         
         #Pruning
         self.prune_gaussians(extent=bbox_range)
@@ -203,7 +204,7 @@ class Scene():
 
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False), 
-                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 2)
+                                 torch.max(scales, dim = 1).values > extent[0] * self.percent_dense * 1)
 
         
         stds = torch.exp(self.scales[mask]).repeat(N,1)
@@ -258,7 +259,7 @@ class Scene():
         #print("Cond 2: " + str((torch.max(self.scales, dim = 1).values <= extent[0] * extent[1] * percent_dense).size()))
         scales = torch.exp(self.scales)
         mask = torch.logical_and(torch.where(torch.norm(grads) >= self.grad_threshold, True, False),
-                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.01)
+                                 torch.max(scales, dim = 1).values <= extent[0] * self.percent_dense * 0.25)
 
         #Generate new gaussian values
         new_points = self.points[mask]
