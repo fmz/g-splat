@@ -1,4 +1,4 @@
-name: gaussian_splatting_2
+name: g-splat
 channels:
   - pytorch
   - conda-forge
@@ -7,13 +7,14 @@ channels:
 dependencies:
   - cuda-toolkit
   - plyfile
-  - python
+  - python=3.12
   - pip
   - pytorch
   - torchaudio
   - torchvision
   - tqdm
   - pyglm
+  - matplotlib
   - pip:
     - opencv-python
     - joblib
